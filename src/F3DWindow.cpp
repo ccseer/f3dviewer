@@ -54,6 +54,9 @@ void F3DWindow::initializeGL()
         m_engine->getScene().add(m_path.toStdString());
         auto& opt              = m_engine->getOptions();
         opt.render.grid.enable = true;
+        // TODO: animation
+        opt.scene.animation.autoplay = true;
+        //   opt.render.background.color = {0, 0, 0};
         // initial state
         auto& cam = m_engine->getWindow().getCamera();
         cam.resetToBounds(0.7);
@@ -63,12 +66,7 @@ void F3DWindow::initializeGL()
     }
     catch (...) {
         qprintt << "Error initializing F3D engine";
-        return;
     }
-    // opt.render.show_edges        = true;
-    // opt.scene.animation.autoplay = true;
-    //  opt.ui.axis            = true;
-    //   opt.render.background.color = {0, 0, 0};
 }
 
 void F3DWindow::resizeGL(int w, int h)
@@ -228,7 +226,8 @@ void F3DWindow::handleKey(QKeyEvent* event)
         }
         case Qt::Key_W: {
             // TODO:
-            opt.toggle("animation.index");
+            opt.scene.animation.index += 1;
+            // opt.toggle("animation.index");
             break;
         }
         case Qt::Key_C: {

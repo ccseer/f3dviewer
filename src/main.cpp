@@ -11,8 +11,8 @@ int main(int argc, char *argv[])
     p         = "D:/3d/1.stl";
     //p         = "D:/3d/cube.fbx";
     //p         = "D:/3d/c.stl";
-     //p = "D:/3d/mr.fbx";
-     p = "D:/3d/p.3ds";
+     p = "D:/3d/mr.fbx";
+     //p = "D:/3d/p.3ds";
     if (QFileInfo::exists(p) == false) {
         qDebug() << "File does not exist:" << p;
         return -1;

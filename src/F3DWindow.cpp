@@ -11,6 +11,7 @@
 #include <QDebug>
 #include <QMouseEvent>
 #include <QQuaternion>
+#include <QVariantAnimation>
 #include <QVector3D>
 
 #define qprintt qDebug() << "[F3DWindow]"
@@ -158,11 +159,50 @@ void F3DWindow::handleKey(QKeyEvent* event)
     //     qprintt << k;
     // }
 
-    bool shift = event->modifiers() & Qt::ShiftModifier;
-    bool ctrl  = event->modifiers() & Qt::ControlModifier;
+    const bool shift = event->modifiers() & Qt::ShiftModifier;
+    const bool ctrl  = event->modifiers() & Qt::ControlModifier;
 
     try {
         switch (event->key()) {
+        case Qt::Key_1:
+        case Qt::Key_2:
+        case Qt::Key_3:
+        case Qt::Key_4:
+        case Qt::Key_5:
+        case Qt::Key_6: {
+            auto& cam  = m_engine->getWindow().getCamera();
+            auto focal = cam.getFocalPoint();
+            auto pos   = cam.getPosition();
+
+            double dist = std::sqrt(std::pow(focal[0] - pos[0], 2)
+                                    + std::pow(focal[1] - pos[1], 2)
+                                    + std::pow(focal[2] - pos[2], 2));
+
+            // [1~6] => [front, back, left, right, top, bottom]
+            const QHash<int, QVector3D> directions{
+                {Qt::Key_1, QVector3D(0, 0, -1)},
+                {Qt::Key_2, QVector3D(0, 0, 1)},
+                {Qt::Key_3, QVector3D(-1, 0, 0)},
+                {Qt::Key_4, QVector3D(1, 0, 0)},
+                {Qt::Key_5, QVector3D(0, 1, 0)},
+                {Qt::Key_6, QVector3D(0, -1, 0)},
+            };
+            QVector3D up(0, 1, 0);
+            const QVector3D direction = directions[event->key()];
+            if (event->key() == Qt::Key_5) {
+                up = QVector3D(0, 0, 1);
+            }
+            else if (event->key() == Qt::Key_6) {
+                up = QVector3D(0, 0, -1);
+            }
+            QVector3D targetPos
+                = QVector3D(focal[0], focal[1], focal[2]) - direction * dist;
+            moveCameraTo(targetPos, QVector3D(focal[0], focal[1], focal[2]),
+                         up);
+            break;
+        }
+            ////////////////////////////////////////////////////////////////
+            /// undone
         case Qt::Key_A: {
             if (shift) {
                 opt.toggle("render.armature");
@@ -291,18 +331,6 @@ void F3DWindow::handleKey(QKeyEvent* event)
             }
             break;
         }
-        case Qt::Key_1:
-        case Qt::Key_2:
-        case Qt::Key_3:
-        case Qt::Key_4:
-        case Qt::Key_5:
-        case Qt::Key_6:
-        case Qt::Key_7:
-        case Qt::Key_8:
-        case Qt::Key_9:
-            m_engine->getWindow().getCamera().resetToBounds(event->key()
-                                                            - Qt::Key_0);
-            break;
         case Qt::Key_Return:
             m_engine->getWindow().getCamera().resetToDefault();
             break;
@@ -311,5 +339,42 @@ void F3DWindow::handleKey(QKeyEvent* event)
         }
     }
     catch (...) {
+        qprintt << "Error handling key" << event->key();
     }
+}
+
+void F3DWindow::moveCameraTo(const QVector3D& newPos,
+                             const QVector3D& focal,
+                             const QVector3D& up)
+{
+    if (!m_engine) {
+        return;
+    }
+
+    auto animations = this->findChildren<QVariantAnimation*>();
+    if (!animations.isEmpty()) {
+        qprintt << "Animation already running";
+        return;
+    }
+
+    const auto pos = m_engine->getWindow().getCamera().getPosition();
+    m_animation.camera_pos_start = QVector3D(pos[0], pos[1], pos[2]);
+    m_animation.camera_pos_end   = newPos;
+    auto anim                    = new QVariantAnimation(this);
+    anim->setDuration(500);
+    anim->setStartValue(0.0);
+    anim->setEndValue(1.0);
+    anim->setEasingCurve(QEasingCurve::InOutQuad);
+    connect(anim, &QVariantAnimation::valueChanged, this,
+            [this, focal, up](const QVariant& value) {
+                double progress = value.toDouble();
+                auto current = m_animation.camera_pos_start * (1.0 - progress)
+                               + m_animation.camera_pos_end * progress;
+                auto& cam = m_engine->getWindow().getCamera();
+                cam.setPosition({current.x(), current.y(), current.z()});
+                cam.setFocalPoint({focal.x(), focal.y(), focal.z()});
+                cam.setViewUp({up.x(), up.y(), up.z()});
+            });
+    connect(anim, &QVariantAnimation::finished, anim, &QObject::deleteLater);
+    anim->start();
 }

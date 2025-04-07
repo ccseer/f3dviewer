@@ -2,6 +2,7 @@
 #pragma once
 
 #include <QOpenGLWindow>
+#include <QVector3D>
 #include <memory>
 
 namespace f3d {
@@ -27,9 +28,17 @@ protected:
 
 private:
     void handleKey(QKeyEvent* event);
+    void moveCameraTo(const QVector3D& newPos,
+                      const QVector3D& focal,
+                      const QVector3D& up);
 
     std::unique_ptr<f3d::engine> m_engine;
-    QString m_path;
 
+    struct {
+        QVector3D camera_pos_start;
+        QVector3D camera_pos_end;
+    } m_animation;
+
+    QString m_path;
     QPointF m_pos;
 };

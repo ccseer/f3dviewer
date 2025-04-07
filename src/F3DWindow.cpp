@@ -9,7 +9,6 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QDebug>
-#include <QElapsedTimer>
 #include <QMouseEvent>
 #include <QOpenGLContext>
 #include <QQuaternion>
@@ -62,9 +61,19 @@ bool F3DWindow::load(const QString& path)
         cam.azimuth(45);
         cam.elevation(30);
         cam.setCurrentAsDefault();
-        // TODO: animation
         opt.scene.animation.index = 0;
-        m_engine->getScene().loadAnimationTime(0.5);
+        // 60 fps
+        if (m_engine->getScene().animationTimeRange().second) {
+            m_animation.timer.setInterval(16);
+            connect(&m_animation.timer, &QTimer::timeout, this,
+                    &F3DWindow::onAnimTick);
+            m_animation.timer.start();
+            m_animation.elapsed.start();
+        }
+        else {
+            // no animation
+            m_animation.playing = false;
+        }
         return true;
     }
     catch (...) {
@@ -270,6 +279,7 @@ void F3DWindow::handleKey(QKeyEvent* event)
         }
         case Qt::Key_P: {
             if (ctrl) {
+                // TODO: last. value_or
                 if (opt.model.color.opacity.has_value()) {
                     if (opt.model.color.opacity.value() < 1.0) {
                         opt.model.color.opacity.value() += 0.1;
@@ -431,4 +441,20 @@ void F3DWindow::moveCameraTo(const QVector3D& new_pos,
             });
     connect(anim, &QVariantAnimation::finished, anim, &QObject::deleteLater);
     anim->start();
+}
+
+void F3DWindow::onAnimTick()
+{
+    if (!m_engine || !m_animation.playing) {
+        return;
+    }
+    m_animation.pos
+        += (m_animation.elapsed.restart() * 1. / 1000. * m_animation.speed);
+    if (m_animation.pos > m_engine->getScene().animationTimeRange().second) {
+        m_animation.pos = 0;
+    }
+    qprintt << "onAnimTick" << m_animation.pos
+            << m_engine->getScene().animationTimeRange();
+    // m_animation.pos = std::fmod(m_animation.pos, 1.0);
+    m_engine->getScene().loadAnimationTime(m_animation.pos);
 }

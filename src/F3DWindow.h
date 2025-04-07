@@ -1,6 +1,8 @@
 #pragma once
 
+#include <QElapsedTimer>
 #include <QOpenGLWidget>
+#include <QTimer>
 #include <QVector3D>
 #include <memory>
 
@@ -33,12 +35,18 @@ private:
     void moveCameraTo(const QVector3D& new_pos,
                       const QVector3D& focal,
                       const QVector3D& up);
-
-    std::unique_ptr<f3d::engine> m_engine;
+    void onAnimTick();
 
     //
     struct {
+        QElapsedTimer elapsed;
+        QTimer timer;
+        double speed = 1.;
+        bool playing = true;
+        // [0, 1], for loadAnimationTime
+        double pos = 0;
     } m_animation;
+    std::unique_ptr<f3d::engine> m_engine;
 
     QPointF m_pos;
 };

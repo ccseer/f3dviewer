@@ -43,17 +43,32 @@ void F3DWindow::initializeGL()
         update();
     });
 
-    f3d::engine::autoloadPlugins();
     f3d::context::function ctx = [this](const char* name) {
         return this->context()->getProcAddress(name);
     };
-    m_engine = std::make_unique<f3d::engine>(f3d::engine::createExternal(ctx));
-    m_engine->getWindow().setSize(width(), height());
-    m_engine->getScene().add(m_path.toStdString());
-    auto& opt              = m_engine->getOptions();
-    opt.render.grid.enable = true;
-    // opt.ui.axis            = true;
-    //  opt.render.background.color = {0, 0, 0};
+    try {
+        f3d::engine::autoloadPlugins();
+        m_engine
+            = std::make_unique<f3d::engine>(f3d::engine::createExternal(ctx));
+        m_engine->getWindow().setSize(width(), height());
+        m_engine->getScene().add(m_path.toStdString());
+        auto& opt              = m_engine->getOptions();
+        opt.render.grid.enable = true;
+        // initial state
+        auto& cam = m_engine->getWindow().getCamera();
+        cam.resetToBounds(0.7);
+        cam.azimuth(45);
+        cam.elevation(30);
+        m_engine->getWindow().getCamera().setCurrentAsDefault();
+    }
+    catch (...) {
+        qprintt << "Error initializing F3D engine";
+        return;
+    }
+    // opt.render.show_edges        = true;
+    // opt.scene.animation.autoplay = true;
+    //  opt.ui.axis            = true;
+    //   opt.render.background.color = {0, 0, 0};
 }
 
 void F3DWindow::resizeGL(int w, int h)
@@ -101,7 +116,7 @@ void F3DWindow::mouseMoveEvent(QMouseEvent* event)
             cam.pan(-delta.x() * pan_speed, delta.y() * pan_speed);
         }
         else {
-            cam.azimuth(delta.x() * g_rotate_speed);
+            cam.azimuth(-delta.x() * g_rotate_speed);
             cam.elevation(delta.y() * g_rotate_speed);
         }
     }
@@ -122,6 +137,20 @@ void F3DWindow::mouseMoveEvent(QMouseEvent* event)
             cam.dolly(1.0 - delta.y() * g_zoom_speed);
         }
     }
+}
+
+void F3DWindow::mouseDoubleClickEvent(QMouseEvent* event)
+{
+    if (!m_engine) {
+        return;
+    }
+    if (event->button() != Qt::LeftButton) {
+        return;
+    }
+
+    qprintt << "Double click detected, resetting camera";
+    // m_engine->getWindow().getCamera().resetToBounds();
+    m_engine->getWindow().getCamera().resetToDefault();
 }
 
 void F3DWindow::wheelEvent(QWheelEvent* event)
@@ -150,15 +179,7 @@ void F3DWindow::handleKey(QKeyEvent* event)
     if (!m_engine)
         return;
 
-    auto& opt = m_engine->getOptions();
-    // OPTIONS.md
-    // TODO:
-    // https://github.com/f3d-app/f3d/blob/362e0b5a24840c5ced151db19814d72108493f5d/doc/libf3d/OPTIONS.md
-    // https://github.com/f3d-app/f3d/blob/362e0b5a24840c5ced151db19814d72108493f5d/library/src/interactor_impl.cxx
-    // for (auto k : m_engine->getOptions().getAllNames()) {
-    //     qprintt << k;
-    // }
-
+    auto& opt        = m_engine->getOptions();
     const bool shift = event->modifiers() & Qt::ShiftModifier;
     const bool ctrl  = event->modifiers() & Qt::ControlModifier;
 
@@ -170,14 +191,12 @@ void F3DWindow::handleKey(QKeyEvent* event)
         case Qt::Key_4:
         case Qt::Key_5:
         case Qt::Key_6: {
-            auto& cam  = m_engine->getWindow().getCamera();
-            auto focal = cam.getFocalPoint();
-            auto pos   = cam.getPosition();
-
-            double dist = std::sqrt(std::pow(focal[0] - pos[0], 2)
-                                    + std::pow(focal[1] - pos[1], 2)
-                                    + std::pow(focal[2] - pos[2], 2));
-
+            auto& cam        = m_engine->getWindow().getCamera();
+            const auto focal = cam.getFocalPoint();
+            const auto pos   = cam.getPosition();
+            double dist      = std::sqrt(std::pow(focal[0] - pos[0], 2)
+                                         + std::pow(focal[1] - pos[1], 2)
+                                         + std::pow(focal[2] - pos[2], 2));
             // [1~6] => [front, back, left, right, top, bottom]
             const QHash<int, QVector3D> directions{
                 {Qt::Key_1, QVector3D(0, 0, -1)},
@@ -195,24 +214,32 @@ void F3DWindow::handleKey(QKeyEvent* event)
             else if (event->key() == Qt::Key_6) {
                 up = QVector3D(0, 0, -1);
             }
-            QVector3D targetPos
+            auto target
                 = QVector3D(focal[0], focal[1], focal[2]) - direction * dist;
-            moveCameraTo(targetPos, QVector3D(focal[0], focal[1], focal[2]),
-                         up);
+            moveCameraTo(target, QVector3D(focal[0], focal[1], focal[2]), up);
+            break;
+        }
+
+        case Qt::Key_W: {
+            opt.toggle("animation.index");
+            qprintt << "animation.index";
+            break;
+        }
+        case Qt::Key_A: {
+            opt.toggle("render.effect.anti_aliasing");
+            break;
+        }
+        case Qt::Key_I: {
+            opt.toggle("ui.metadata");
+            opt.toggle("ui.fps");
+            // opt.toggle("ui.axis");
             break;
         }
             ////////////////////////////////////////////////////////////////
-            /// undone
-        case Qt::Key_A: {
-            if (shift) {
-                opt.toggle("render.armature");
-            }
-            else {
-                opt.toggle("render.antialiasing");
-            }
-            qprintt << "Antialiasing";
-            break;
-        }
+            // TODO:
+            // https://github.com/f3d-app/f3d/blob/362e0b5a24840c5ced151db19814d72108493f5d/doc/libf3d/OPTIONS.md
+            // https://github.com/f3d-app/f3d/blob/362e0b5a24840c5ced151db19814d72108493f5d/library/src/interactor_impl.cxx
+
         case Qt::Key_B: {
             opt.toggle("coloring.scalar_bar");
             break;
@@ -245,21 +272,8 @@ void F3DWindow::handleKey(QKeyEvent* event)
             qprintt << "coloring.array.component";
             break;
         }
-        case Qt::Key_W: {
-            opt.toggle("animation.index");
-            qprintt << "animation.index";
-            break;
-        }
         case Qt::Key_V: {
             opt.toggle("render.volume");
-            break;
-        }
-        case Qt::Key_I: {
-            // opt.toggle("volume.invert");
-            opt.toggle("ui.metadata");
-            opt.toggle("ui.fps");
-            // opt.toggle("ui.axis");
-            // opt.ui.axis = !opt.ui.axis;
             break;
         }
         case Qt::Key_O: {
@@ -350,10 +364,9 @@ void F3DWindow::moveCameraTo(const QVector3D& newPos,
     if (!m_engine) {
         return;
     }
-
     auto animations = this->findChildren<QVariantAnimation*>();
     if (!animations.isEmpty()) {
-        qprintt << "Animation already running";
+        qprintt << "animation already running";
         return;
     }
 

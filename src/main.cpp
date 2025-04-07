@@ -13,13 +13,14 @@ int main(int argc, char *argv[])
     //p         = "D:/3d/c.stl";
      p = "D:/3d/mr.fbx";
      //p = "D:/3d/p.3ds";
-    if (QFileInfo::exists(p) == false) {
+    if (!QFileInfo::exists(p)) {
         qDebug() << "File does not exist:" << p;
         return -1;
     }
-
-    F3DWindow *viewer = new F3DWindow(p);
-    viewer->setTitle(p);
+    F3DWindow *viewer = new F3DWindow();
+    if (!viewer->load(p)) {
+        return -1;
+    }
     viewer->resize(1280, 720);
     viewer->show();
 

@@ -1,7 +1,6 @@
-
 #pragma once
 
-#include <QOpenGLWindow>
+#include <QOpenGLWidget>
 #include <QVector3D>
 #include <memory>
 
@@ -9,11 +8,13 @@ namespace f3d {
 class engine;
 }
 
-class F3DWindow : public QOpenGLWindow {
+class F3DWindow : public QOpenGLWidget {
     Q_OBJECT
 public:
-    explicit F3DWindow(const QString& filePath);
+    explicit F3DWindow(QWidget* parent = nullptr);
     ~F3DWindow() override;
+
+    bool load(const QString& path);
 
 protected:
     void initializeGL() override;
@@ -29,17 +30,15 @@ protected:
 
 private:
     void handleKey(QKeyEvent* event);
-    void moveCameraTo(const QVector3D& newPos,
+    void moveCameraTo(const QVector3D& new_pos,
                       const QVector3D& focal,
                       const QVector3D& up);
 
     std::unique_ptr<f3d::engine> m_engine;
 
+    //
     struct {
-        QVector3D camera_pos_start;
-        QVector3D camera_pos_end;
     } m_animation;
 
-    QString m_path;
     QPointF m_pos;
 };

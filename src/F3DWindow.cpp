@@ -59,7 +59,7 @@ void F3DWindow::initializeGL()
         cam.resetToBounds(0.7);
         cam.azimuth(45);
         cam.elevation(30);
-        m_engine->getWindow().getCamera().setCurrentAsDefault();
+        cam.setCurrentAsDefault();
     }
     catch (...) {
         qprintt << "Error initializing F3D engine";
@@ -141,15 +141,12 @@ void F3DWindow::mouseMoveEvent(QMouseEvent* event)
 
 void F3DWindow::mouseDoubleClickEvent(QMouseEvent* event)
 {
-    if (!m_engine) {
-        return;
-    }
-    if (event->button() != Qt::LeftButton) {
+    if (!m_engine || event->button() != Qt::LeftButton) {
+        QOpenGLWindow::mouseDoubleClickEvent(event);
         return;
     }
 
-    qprintt << "Double click detected, resetting camera";
-    // m_engine->getWindow().getCamera().resetToBounds();
+    qprintt << "mouseDoubleClickEvent, resetting camera";
     m_engine->getWindow().getCamera().resetToDefault();
 }
 
@@ -176,13 +173,15 @@ void F3DWindow::keyPressEvent(QKeyEvent* event)
 
 void F3DWindow::handleKey(QKeyEvent* event)
 {
-    if (!m_engine)
+    if (!m_engine) {
         return;
+    }
 
     auto& opt        = m_engine->getOptions();
     const bool shift = event->modifiers() & Qt::ShiftModifier;
     const bool ctrl  = event->modifiers() & Qt::ControlModifier;
 
+    // https://github.com/f3d-app/f3d/blob/master/doc/libf3d/OPTIONS.md
     try {
         switch (event->key()) {
         case Qt::Key_1:
@@ -219,29 +218,17 @@ void F3DWindow::handleKey(QKeyEvent* event)
             moveCameraTo(target, QVector3D(focal[0], focal[1], focal[2]), up);
             break;
         }
-
+        case Qt::Key_7: {
+            opt.toggle("scene.camera.orthographic");
+            break;
+        }
+        case Qt::Key_8: {
+            // isometric view?
+            break;
+        }
         case Qt::Key_W: {
-            opt.toggle("animation.index");
-            qprintt << "animation.index";
-            break;
-        }
-        case Qt::Key_A: {
-            opt.toggle("render.effect.anti_aliasing");
-            break;
-        }
-        case Qt::Key_I: {
-            opt.toggle("ui.metadata");
-            opt.toggle("ui.fps");
-            // opt.toggle("ui.axis");
-            break;
-        }
-            ////////////////////////////////////////////////////////////////
             // TODO:
-            // https://github.com/f3d-app/f3d/blob/362e0b5a24840c5ced151db19814d72108493f5d/doc/libf3d/OPTIONS.md
-            // https://github.com/f3d-app/f3d/blob/362e0b5a24840c5ced151db19814d72108493f5d/library/src/interactor_impl.cxx
-
-        case Qt::Key_B: {
-            opt.toggle("coloring.scalar_bar");
+            opt.toggle("animation.index");
             break;
         }
         case Qt::Key_C: {
@@ -256,104 +243,146 @@ void F3DWindow::handleKey(QKeyEvent* event)
                     qApp->clipboard()->setImage(buf);
                 }
             }
-            else {
-                opt.toggle("coloring.array.location");
-                qprintt << "coloring.array.location";
-            }
+            // else {
+            //     opt.toggle("coloring.array.location");
+            //     qprintt << "coloring.array.location";
+            // }
             break;
         }
-        case Qt::Key_S: {
-            opt.toggle("coloring.array.name");
-            qprintt << "coloring.array.name";
-            break;
-        }
-        case Qt::Key_Y: {
-            opt.toggle("coloring.array.component");
-            qprintt << "coloring.array.component";
-            break;
-        }
-        case Qt::Key_V: {
-            opt.toggle("render.volume");
-            break;
-        }
-        case Qt::Key_O: {
-            opt.toggle("render.point_sprites");
+        // case Qt::Key_S: {
+        //     break;
+        // }
+        // case Qt::Key_Y: {
+        //      break;
+        //  }
+        case Qt::Key_B: {
+            opt.toggle("ui.scalar_bar");
             break;
         }
         case Qt::Key_P: {
-            if (ctrl)
-                opt.set("model.opacity",
-                        std::get<double>(opt.get("model.opacity")) + 0.1);
-            else if (shift)
-                opt.set("model.opacity",
-                        std::get<double>(opt.get("model.opacity")) - 0.1);
-            else
-                opt.toggle("render.translucency");
-            break;
-        }
-        case Qt::Key_Q:
-            opt.toggle("render.ambient_occlusion");
-            break;
-        case Qt::Key_T:
-            opt.toggle("render.tone_mapping");
-            break;
-        case Qt::Key_E:
-            opt.toggle("render.edges");
-            break;
-        case Qt::Key_X:
-            opt.toggle("render.axes");
-            break;
-        case Qt::Key_G:
-            // opt.toggle("render.grid.enable");
-            opt.render.grid.enable = !opt.render.grid.enable;
-            break;
-        case Qt::Key_N:
-            opt.toggle("render.filename");
-            break;
-        case Qt::Key_M:
-            opt.toggle("render.metadata");
-            break;
-        case Qt::Key_Z:
-            opt.toggle("render.fps");
-            break;
-        case Qt::Key_R:
-            opt.toggle("render.raytracing");
-            break;
-        case Qt::Key_D:
-            opt.toggle("render.denoiser");
-            break;
-        case Qt::Key_U:
-            opt.toggle("render.background_blur");
-            break;
-        case Qt::Key_K:
-            opt.toggle("interactor.trackball");
-            break;
-        case Qt::Key_F:
-            opt.toggle("hdri.ambient");
-            break;
-        case Qt::Key_J:
-            opt.toggle("hdri.skybox");
-            break;
-        case Qt::Key_L: {
-            if (shift) {
-                opt.set("light.intensity",
-                        std::get<double>(opt.get("light.intensity")) - 0.1);
+            if (ctrl) {
+                if (opt.model.color.opacity.has_value()) {
+                    if (opt.model.color.opacity.value() < 1.0) {
+                        opt.model.color.opacity.value() += 0.1;
+                    }
+                }
+                else {
+                    opt.set("model.color.opacity", 0.1);
+                }
+            }
+            else if (shift) {
+                if (opt.model.color.opacity.has_value()) {
+                    if (opt.model.color.opacity.value() > 0.1) {
+                        opt.model.color.opacity.value() -= 0.1;
+                    }
+                }
+                else {
+                    opt.set("model.color.opacity", 0.9);
+                }
             }
             else {
-                opt.set("light.intensity",
-                        std::get<double>(opt.get("light.intensity")) + 0.1);
+                opt.toggle("render.effect.translucency_support");
+            }
+            break;
+        }
+        case Qt::Key_Q: {
+            opt.toggle("render.effect.ambient_occlusion");
+            break;
+        }
+        case Qt::Key_A: {
+            if (shift) {
+                opt.toggle("render.armature.enable");
+            }
+            else {
+                opt.toggle("render.effect.anti_aliasing");
+            }
+            break;
+        }
+        case Qt::Key_T: {
+            opt.toggle("render.effect.tone_mapping");
+            break;
+        }
+        case Qt::Key_E: {
+            opt.toggle("render.show_edges");
+            break;
+        }
+            // not supported by f3d, requires interactor
+            // case Qt::Key_X:
+            //     opt.toggle("render.axes");
+            //     break;
+        case Qt::Key_G: {
+            opt.toggle("render.grid.enable");
+            break;
+        }
+            // no need
+            // case Qt::Key_N: {
+            //     opt.toggle("render.filename");
+            //     break;
+            // }
+        case Qt::Key_M: {
+            opt.toggle("ui.metadata");
+            break;
+        }
+        case Qt::Key_Z: {
+            opt.toggle("ui.fps");
+            break;
+        }
+        case Qt::Key_V: {
+            opt.toggle("model.volume.enable");
+            break;
+        }
+        case Qt::Key_I: {
+            opt.toggle("opt.model.volume.inverse");
+            break;
+        }
+        case Qt::Key_O: {
+            opt.toggle("model.point_sprites.enable");
+            break;
+        }
+        case Qt::Key_U: {
+            opt.toggle("render.background.blur.enable");
+            break;
+        }
+            // case Qt::Key_K: {
+            //     opt.toggle("interactor.trackball");
+            //     break;
+            // }
+        case Qt::Key_F: {
+            opt.toggle("render.hdri.ambient");
+            break;
+        }
+        case Qt::Key_J: {
+            opt.toggle("render.background.skybox");
+            break;
+        }
+        case Qt::Key_L: {
+            if (shift) {
+                opt.render.light.intensity -= 0.1;
+            }
+            else {
+                opt.render.light.intensity += 0.1;
             }
             break;
         }
         case Qt::Key_Return:
+        case Qt::Key_Enter: {
             m_engine->getWindow().getCamera().resetToDefault();
             break;
+        }
+            ////////////////////////////////////////////////////////////////
+            // TODO:
+        // case Qt::Key_R:
+        //     opt.toggle("render.raytracing");
+        //     break;
+        // case Qt::Key_D:
+        //     opt.toggle("render.denoiser");
+        //     break;
         default:
             break;
         }
     }
     catch (...) {
-        qprintt << "Error handling key" << event->key();
+        qprintt << "Error handling key" << event->text();
     }
 }
 

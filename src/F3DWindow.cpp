@@ -183,16 +183,14 @@ void F3DWindow::wheelEvent(QWheelEvent* event)
 
     const float delta = event->angleDelta().y() * g_zoom_factor;
     auto& cam         = m_engine->getWindow().getCamera();
-    if (event->modifiers() & Qt::ControlModifier) {
-        cam.dolly(1.0 + delta);
-        qprintt << "dolly" << delta;
-    }
-    else if (event->modifiers() & Qt::ShiftModifier) {
+    // if (event->modifiers() & Qt::ControlModifier) {
+    //     cam.dolly(1.0 + delta);
+    // }
+    // else
+    if (event->modifiers() & Qt::ShiftModifier) {
         cam.zoom(1.0 + delta * g_shift_delta);
-        qprintt << "dolly" << delta;
     }
     else {
-        qprintt << "zoom" << delta;
         cam.zoom(1.0 + delta);
     }
 }
@@ -453,11 +451,9 @@ void F3DWindow::onAnimTick()
     }
     m_animation.pos
         += (m_animation.elapsed.restart() * 1. / 1000. * m_animation.speed);
-    if (m_animation.pos > m_engine->getScene().animationTimeRange().second) {
-        m_animation.pos = 0;
+    auto max = m_engine->getScene().animationTimeRange().second;
+    if (max > 0.0) {
+        m_animation.pos = std::fmod(m_animation.pos, max);
     }
-    qprintt << "onAnimTick" << m_animation.pos
-            << m_engine->getScene().animationTimeRange();
-    // m_animation.pos = std::fmod(m_animation.pos, 1.0);
     m_engine->getScene().loadAnimationTime(m_animation.pos);
 }

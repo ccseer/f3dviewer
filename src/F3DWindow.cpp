@@ -293,25 +293,14 @@ void F3DWindow::handleKey(QKeyEvent* event)
         }
         case Qt::Key_P: {
             if (ctrl) {
-                // TODO: last. value_or
-                if (opt.model.color.opacity.has_value()) {
-                    if (opt.model.color.opacity.value() < 1.0) {
-                        opt.model.color.opacity.value() += 0.1;
-                    }
-                }
-                else {
-                    opt.set("model.color.opacity", 0.1);
-                }
+                double opacity          = opt.model.color.opacity.value_or(0.0);
+                opacity                 = std::min(opacity + 0.1, 1.0);
+                opt.model.color.opacity = opacity;
             }
             else if (shift) {
-                if (opt.model.color.opacity.has_value()) {
-                    if (opt.model.color.opacity.value() > 0.1) {
-                        opt.model.color.opacity.value() -= 0.1;
-                    }
-                }
-                else {
-                    opt.set("model.color.opacity", 0.9);
-                }
+                double opacity          = opt.model.color.opacity.value_or(1.0);
+                opacity                 = std::max(opacity - 0.1, 0.1);
+                opt.model.color.opacity = opacity;
             }
             else {
                 opt.toggle("render.effect.translucency_support");

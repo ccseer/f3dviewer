@@ -18,6 +18,7 @@
 #define qprintt qDebug() << "[F3DWindow]"
 
 namespace {
+constexpr auto g_shift_delta   = 0.1f;
 constexpr float g_zoom_factor  = 0.001f;
 constexpr float g_zoom_speed   = 0.01f;
 constexpr float g_rotate_speed = 0.5f;
@@ -122,15 +123,31 @@ void F3DWindow::mouseMoveEvent(QMouseEvent* event)
     m_pos      = event->position();
     auto& cam  = m_engine->getWindow().getCamera();
 
+    auto panCamera = [this, &cam](float dx, float dy, double speedScale = 1.0) {
+        auto pos         = cam.getPosition();
+        auto focal       = cam.getFocalPoint();
+        double dist      = std::sqrt(std::pow(focal[0] - pos[0], 2)
+                                     + std::pow(focal[1] - pos[1], 2)
+                                     + std::pow(focal[2] - pos[2], 2));
+        double pan_speed = dist * 0.001 * speedScale;
+        cam.pan(-dx * pan_speed, dy * pan_speed);
+    };
+
     if (event->buttons() & Qt::LeftButton) {
         if (event->modifiers() & Qt::ShiftModifier) {
-            auto pos         = cam.getPosition();
-            auto focal       = cam.getFocalPoint();
-            double dist      = std::sqrt(std::pow(focal[0] - pos[0], 2)
-                                         + std::pow(focal[1] - pos[1], 2)
-                                         + std::pow(focal[2] - pos[2], 2));
-            double pan_speed = dist * 0.001;
-            cam.pan(-delta.x() * pan_speed, delta.y() * pan_speed);
+            panCamera(delta.x(), delta.y(), 1.);
+        }
+        else if (event->modifiers() & Qt::ControlModifier) {
+            auto pos_arr = cam.getPosition();
+            QVector3D pos(pos_arr[0], pos_arr[1], pos_arr[2]);
+            auto focal_arr = cam.getFocalPoint();
+            QVector3D focal(focal_arr[0], focal_arr[1], focal_arr[2]);
+            auto rollRot = QQuaternion::fromAxisAndAngle(
+                (focal - pos).normalized(), -delta.x() * g_rotate_speed);
+            auto view_arr = cam.getViewUp();
+            QVector3D up  = rollRot.rotatedVector(
+                QVector3D(view_arr[0], view_arr[1], view_arr[2]));
+            cam.setViewUp({up.x(), up.y(), up.z()});
         }
         else {
             cam.azimuth(-delta.x() * g_rotate_speed);
@@ -139,17 +156,7 @@ void F3DWindow::mouseMoveEvent(QMouseEvent* event)
     }
     else if (event->buttons() & Qt::RightButton) {
         if (event->modifiers() & Qt::ShiftModifier) {
-            try {
-                // TODO:
-                auto& opt    = m_engine->getOptions();
-                double angle = delta.x() * 0.5;
-                double prevRotation
-                    = std::get<double>(opt.get("hdri.rotation"));
-                opt.set("hdri.rotation", prevRotation + angle);
-            }
-            catch (...) {
-                qprintt << "Error rotating HDRI";
-            }
+            panCamera(delta.x(), delta.y(), g_shift_delta);
         }
         else {
             cam.dolly(1.0 - delta.y() * g_zoom_speed);
@@ -178,8 +185,14 @@ void F3DWindow::wheelEvent(QWheelEvent* event)
     auto& cam         = m_engine->getWindow().getCamera();
     if (event->modifiers() & Qt::ControlModifier) {
         cam.dolly(1.0 + delta);
+        qprintt << "dolly" << delta;
+    }
+    else if (event->modifiers() & Qt::ShiftModifier) {
+        cam.zoom(1.0 + delta * g_shift_delta);
+        qprintt << "dolly" << delta;
     }
     else {
+        qprintt << "zoom" << delta;
         cam.zoom(1.0 + delta);
     }
 }
@@ -270,6 +283,7 @@ void F3DWindow::handleKey(QKeyEvent* event)
         // case Qt::Key_S: {
         //     break;
         // }
+
         // case Qt::Key_Y: {
         //      break;
         //  }

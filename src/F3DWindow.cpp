@@ -1,7 +1,6 @@
 #include "F3DWindow.h"
 
 #include <f3d/engine.h>
-#include <f3d/interactor.h>
 #include <f3d/options.h>
 #include <f3d/scene.h>
 #include <f3d/window.h>
@@ -50,11 +49,16 @@ bool F3DWindow::load(const QString& path)
             f3d::engine::createExternal([this](const char* name) {
                 return context()->getProcAddress(name);
             }));
+        auto& opt              = m_engine->getOptions();
+        opt.render.grid.enable = true;
+        // opt.ui.loader_progress = true;
+        //  The default scene always has at most one animation.
+        //  The animation index is 0 if no animation is present.
+        opt.scene.animation.index = -1;
+
         m_engine->getWindow().setSize(width(), height());
         m_engine->getScene().add(path.toStdString());
         qprintt << "load" << et.elapsed();
-        auto& opt              = m_engine->getOptions();
-        opt.render.grid.enable = true;
         //   opt.render.background.color = {0, 0, 0};
         // initial state
         auto& cam = m_engine->getWindow().getCamera();
@@ -62,9 +66,11 @@ bool F3DWindow::load(const QString& path)
         cam.azimuth(45);
         cam.elevation(30);
         cam.setCurrentAsDefault();
-        opt.scene.animation.index = 0;
+
         // 60 fps
-        if (m_engine->getScene().animationTimeRange().second) {
+        qprintt << "animation" << opt.scene.animation.index
+                << m_engine->getScene().animationTimeRange();
+        if (m_engine->getScene().animationTimeRange().second != 0.) {
             m_animation.timer.setInterval(16);
             connect(&m_animation.timer, &QTimer::timeout, this,
                     &F3DWindow::onAnimTick);
@@ -248,7 +254,7 @@ void F3DWindow::handleKey(QKeyEvent* event)
             break;
         }
         case Qt::Key_7: {
-            opt.toggle("scene.camera.orthographic");
+            // opt.toggle("scene.camera.orthographic");
             break;
         }
         case Qt::Key_8: {
@@ -258,6 +264,9 @@ void F3DWindow::handleKey(QKeyEvent* event)
         case Qt::Key_W: {
             // TODO:animation.index
             opt.scene.animation.index += 1;
+            qprintt << "animation index" << opt.scene.animation.index
+                    << m_engine->getScene().animationTimeRange();
+            m_engine->getScene().loadAnimationTime(0.0);
             break;
         }
         case Qt::Key_C: {
@@ -281,7 +290,6 @@ void F3DWindow::handleKey(QKeyEvent* event)
         // case Qt::Key_S: {
         //     break;
         // }
-
         // case Qt::Key_Y: {
         //      break;
         //  }
@@ -389,14 +397,14 @@ void F3DWindow::handleKey(QKeyEvent* event)
             m_engine->getWindow().getCamera().resetToDefault();
             break;
         }
-            ////////////////////////////////////////////////////////////////
-            // TODO:
-        // case Qt::Key_R:
-        //     opt.toggle("render.raytracing");
+        // case Qt::Key_R: {
+        //     opt.toggle("render.raytracing.enable");
         //     break;
-        // case Qt::Key_D:
-        //     opt.toggle("render.denoiser");
+        // }
+        // case Qt::Key_D: {
+        //     opt.toggle("render.raytracing.denoise");
         //     break;
+        // }
         default:
             break;
         }

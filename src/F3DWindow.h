@@ -37,15 +37,15 @@ private:
                       const QVector3D& up);
     void onAnimTick();
 
-    //
     struct {
         QElapsedTimer elapsed;
         QTimer timer;
         double speed = 1.;
+        // for loadAnimationTime
+        double pos   = 0;
         bool playing = true;
-        // [0, 1], for loadAnimationTime
-        double pos = 0;
     } m_animation;
+
     std::unique_ptr<f3d::engine> m_engine;
 
     QPointF m_pos;

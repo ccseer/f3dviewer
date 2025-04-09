@@ -1,11 +1,9 @@
 #pragma once
 
-#include <qt_windows.h>
-
 #include "seer/viewerbase.h"
 
-class QProcess;
 class F3DWidget;
+class SidebarWnd;
 
 class F3DViewer : public ViewerBase {
     Q_OBJECT
@@ -30,5 +28,7 @@ protected:
     void loadImpl(QBoxLayout* lay_content, QHBoxLayout* lay_ctrlbar) override;
 
 private:
+    
+    SidebarWnd* m_sidebar = nullptr;
     F3DWidget* m_view = nullptr;
 };

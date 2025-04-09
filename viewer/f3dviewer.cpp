@@ -4,6 +4,7 @@
 #include <QKeyEvent>
 
 #include "F3DWidget.h"
+#include "sidebarwnd.h"
 
 #define qprintt qDebug() << "[F3DViewer]"
 
@@ -19,13 +20,14 @@ F3DViewer::~F3DViewer()
 
 QSize F3DViewer::getContentSize() const
 {
-    return m_d->d->dpr * QSize{800, 800};
+    return m_d->d->dpr * QSize{950, 700};
 }
 
 void F3DViewer::updateDPR(qreal r)
 {
     m_d->d->dpr = r;
-    // "ui.scale";
+    m_sidebar->setFixedWidth(r * 300);
+    // m_view: "ui.scale";
 }
 
 void F3DViewer::updateTheme(int t)
@@ -50,8 +52,15 @@ void F3DViewer::keyPressEvent(QKeyEvent* event)
 
 void F3DViewer::loadImpl(QBoxLayout* lay_content, QHBoxLayout* lay_ctrlbar)
 {
-    m_view = new F3DWidget(this);
-    lay_content->addWidget(m_view);
+    m_view           = new F3DWidget(this);
+    m_sidebar        = new SidebarWnd(this);
+    QHBoxLayout* hbl = new QHBoxLayout();
+    hbl->setContentsMargins(0, 0, 0, 0);
+    hbl->setSpacing(0);
+    hbl->addWidget(m_view);
+    hbl->addWidget(m_sidebar);
+
+    lay_content->addLayout(hbl);
     if (!m_view->load(m_d->d->path)) {
         emit sigCommand(ViewCommandType::VCT_StateChange, VCV_Error);
         return;

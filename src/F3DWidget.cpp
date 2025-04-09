@@ -133,8 +133,13 @@ void F3DWidget::mouseMoveEvent(QMouseEvent* event)
     };
 
     if (event->buttons() & Qt::LeftButton) {
-        if (event->modifiers() & Qt::ShiftModifier) {
-            panCamera(delta.x(), delta.y(), 1.);
+        if (event->modifiers() == Qt::NoModifier) {
+            cam.azimuth(-delta.x() * g_rotate_speed);
+            cam.elevation(delta.y() * g_rotate_speed);
+        }
+        else if (event->modifiers() & Qt::ShiftModifier) {
+            cam.azimuth(-delta.x() * g_rotate_speed * g_shift_delta);
+            cam.elevation(delta.y() * g_rotate_speed * g_shift_delta);
         }
         else if (event->modifiers() & Qt::ControlModifier) {
             auto pos_arr = cam.getPosition();
@@ -148,18 +153,10 @@ void F3DWidget::mouseMoveEvent(QMouseEvent* event)
                 QVector3D(view_arr[0], view_arr[1], view_arr[2]));
             cam.setViewUp({up.x(), up.y(), up.z()});
         }
-        else {
-            cam.azimuth(-delta.x() * g_rotate_speed);
-            cam.elevation(delta.y() * g_rotate_speed);
-        }
     }
     else if (event->buttons() & Qt::RightButton) {
-        if (event->modifiers() & Qt::ShiftModifier) {
-            panCamera(delta.x(), delta.y(), g_shift_delta);
-        }
-        else {
-            cam.dolly(1.0 - delta.y() * g_zoom_speed);
-        }
+        panCamera(delta.x(), delta.y(),
+                  event->modifiers() & Qt::ShiftModifier ? g_shift_delta : 1.);
     }
 }
 
@@ -181,17 +178,10 @@ void F3DWidget::wheelEvent(QWheelEvent* event)
     }
 
     const float delta = event->angleDelta().y() * g_zoom_factor;
-    auto& cam         = m_engine->getWindow().getCamera();
-    // if (event->modifiers() & Qt::ControlModifier) {
-    //     cam.dolly(1.0 + delta);
-    // }
-    // else
-    if (event->modifiers() & Qt::ShiftModifier) {
-        cam.zoom(1.0 + delta * g_shift_delta);
-    }
-    else {
-        cam.zoom(1.0 + delta);
-    }
+    m_engine->getWindow().getCamera().zoom(
+        1.0
+        + (event->modifiers() & Qt::ShiftModifier ? delta * g_shift_delta
+                                                  : delta));
 }
 
 void F3DWidget::keyPressEvent(QKeyEvent* event)

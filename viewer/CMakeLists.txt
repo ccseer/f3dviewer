@@ -10,6 +10,9 @@ qt_add_executable(viewer
     test.cpp
     f3dviewer.cpp
     f3dviewer.h
+    sidebarwnd.ui
+    sidebarwnd.cpp
+    sidebarwnd.h
     f3dviewer.json
 )
 

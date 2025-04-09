@@ -10,11 +10,11 @@ namespace f3d {
 class engine;
 }
 
-class F3DWindow : public QOpenGLWidget {
+class F3DWidget : public QOpenGLWidget {
     Q_OBJECT
 public:
-    explicit F3DWindow(QWidget* parent = nullptr);
-    ~F3DWindow() override;
+    explicit F3DWidget(QWidget* parent = nullptr);
+    ~F3DWidget() override;
 
     bool load(const QString& path);
 

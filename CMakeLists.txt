@@ -8,8 +8,8 @@ qt_standard_project_setup()
 qt_add_executable(F3DViewer
     WIN32 MACOSX_BUNDLE
     src/main.cpp
-    src/F3DWindow.cpp
-    src/F3DWindow.h
+    src/F3DWidget.cpp
+    src/F3DWidget.h
 )
 target_link_libraries(F3DViewer
     PRIVATE

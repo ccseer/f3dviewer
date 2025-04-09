@@ -1,4 +1,4 @@
-#include "F3DWindow.h"
+#include "F3DWidget.h"
 
 #include <f3d/engine.h>
 #include <f3d/options.h>
@@ -23,19 +23,19 @@ constexpr float g_zoom_speed   = 0.01f;
 constexpr float g_rotate_speed = 0.5f;
 }  // namespace
 
-F3DWindow::F3DWindow(QWidget* parent) : QOpenGLWidget(parent)
+F3DWidget::F3DWidget(QWidget* parent) : QOpenGLWidget(parent)
 {
     qprintt << this;
 }
 
-F3DWindow::~F3DWindow()
+F3DWidget::~F3DWidget()
 {
     qprintt << "~" << this;
     m_engine.reset();
     qprintt << "~" << this;
 }
 
-bool F3DWindow::load(const QString& path)
+bool F3DWidget::load(const QString& path)
 {
     try {
         connect(this, &QOpenGLWidget::frameSwapped, this, [this]() {
@@ -70,7 +70,7 @@ bool F3DWindow::load(const QString& path)
             // 60 fps
             m_animation.timer.setInterval(16);
             connect(&m_animation.timer, &QTimer::timeout, this,
-                    &F3DWindow::onAnimTick);
+                    &F3DWidget::onAnimTick);
             m_animation.timer.start();
             m_animation.elapsed.start();
         }
@@ -86,36 +86,36 @@ bool F3DWindow::load(const QString& path)
     }
 }
 
-void F3DWindow::initializeGL()
+void F3DWidget::initializeGL()
 {
     QOpenGLWidget::initializeGL();
 }
 
-void F3DWindow::resizeGL(int w, int h)
+void F3DWidget::resizeGL(int w, int h)
 {
     if (m_engine) {
         m_engine->getWindow().setSize(w, h);
     }
 }
 
-void F3DWindow::paintGL()
+void F3DWidget::paintGL()
 {
     if (m_engine) {
         m_engine->getWindow().render();
     }
 }
 
-void F3DWindow::mousePressEvent(QMouseEvent* event)
+void F3DWidget::mousePressEvent(QMouseEvent* event)
 {
     m_pos = event->pos();
 }
 
-void F3DWindow::mouseReleaseEvent(QMouseEvent* event)
+void F3DWidget::mouseReleaseEvent(QMouseEvent* event)
 {
     Q_UNUSED(event);
 }
 
-void F3DWindow::mouseMoveEvent(QMouseEvent* event)
+void F3DWidget::mouseMoveEvent(QMouseEvent* event)
 {
     if (!m_engine) {
         return;
@@ -166,7 +166,7 @@ void F3DWindow::mouseMoveEvent(QMouseEvent* event)
     }
 }
 
-void F3DWindow::mouseDoubleClickEvent(QMouseEvent* event)
+void F3DWidget::mouseDoubleClickEvent(QMouseEvent* event)
 {
     if (!m_engine || event->button() != Qt::LeftButton) {
         QOpenGLWidget::mouseDoubleClickEvent(event);
@@ -177,7 +177,7 @@ void F3DWindow::mouseDoubleClickEvent(QMouseEvent* event)
     m_engine->getWindow().getCamera().resetToDefault();
 }
 
-void F3DWindow::wheelEvent(QWheelEvent* event)
+void F3DWidget::wheelEvent(QWheelEvent* event)
 {
     if (!m_engine) {
         return;
@@ -197,12 +197,12 @@ void F3DWindow::wheelEvent(QWheelEvent* event)
     }
 }
 
-void F3DWindow::keyPressEvent(QKeyEvent* event)
+void F3DWidget::keyPressEvent(QKeyEvent* event)
 {
     handleKey(event);
 }
 
-void F3DWindow::handleKey(QKeyEvent* event)
+void F3DWidget::handleKey(QKeyEvent* event)
 {
     if (!m_engine) {
         return;
@@ -355,7 +355,7 @@ void F3DWindow::handleKey(QKeyEvent* event)
             break;
         }
         case Qt::Key_I: {
-            opt.toggle("opt.model.volume.inverse");
+            opt.toggle("model.volume.inverse");
             break;
         }
         case Qt::Key_O: {
@@ -409,7 +409,7 @@ void F3DWindow::handleKey(QKeyEvent* event)
     }
 }
 
-void F3DWindow::moveCameraTo(const QVector3D& new_pos,
+void F3DWidget::moveCameraTo(const QVector3D& new_pos,
                              const QVector3D& focal,
                              const QVector3D& up)
 {
@@ -447,7 +447,7 @@ void F3DWindow::moveCameraTo(const QVector3D& new_pos,
     anim->start();
 }
 
-void F3DWindow::onAnimTick()
+void F3DWidget::onAnimTick()
 {
     if (!m_engine || !m_animation.playing) {
         return;

@@ -52,6 +52,7 @@ bool F3DWindow::load(const QString& path)
         auto& opt              = m_engine->getOptions();
         opt.render.grid.enable = true;
         // opt.ui.loader_progress = true;
+        // opt.render.background.color = {0, 0, 0};
         //  The default scene always has at most one animation.
         //  The animation index is 0 if no animation is present.
         opt.scene.animation.index = -1;
@@ -59,18 +60,14 @@ bool F3DWindow::load(const QString& path)
         m_engine->getWindow().setSize(width(), height());
         m_engine->getScene().add(path.toStdString());
         qprintt << "load" << et.elapsed();
-        //   opt.render.background.color = {0, 0, 0};
         // initial state
         auto& cam = m_engine->getWindow().getCamera();
         cam.resetToBounds(0.7);
         cam.azimuth(45);
         cam.elevation(30);
         cam.setCurrentAsDefault();
-
-        // 60 fps
-        qprintt << "animation" << opt.scene.animation.index
-                << m_engine->getScene().animationTimeRange();
         if (m_engine->getScene().animationTimeRange().second != 0.) {
+            // 60 fps
             m_animation.timer.setInterval(16);
             connect(&m_animation.timer, &QTimer::timeout, this,
                     &F3DWindow::onAnimTick);
@@ -92,7 +89,6 @@ bool F3DWindow::load(const QString& path)
 void F3DWindow::initializeGL()
 {
     QOpenGLWidget::initializeGL();
-    qprintt << "initializeGL" << this;
 }
 
 void F3DWindow::resizeGL(int w, int h)
@@ -261,14 +257,13 @@ void F3DWindow::handleKey(QKeyEvent* event)
             // isometric view?
             break;
         }
-        case Qt::Key_W: {
-            // TODO:animation.index
-            opt.scene.animation.index += 1;
-            qprintt << "animation index" << opt.scene.animation.index
-                    << m_engine->getScene().animationTimeRange();
-            m_engine->getScene().loadAnimationTime(0.0);
-            break;
-        }
+        // case Qt::Key_W: {
+        //   not working
+        //    opt.scene.animation.index += 1;
+        //    qprintt << "animation index" << opt.scene.animation.index
+        //            << m_engine->getScene().animationTimeRange();
+        //    break;
+        //}
         case Qt::Key_C: {
             if (ctrl) {
                 QImage buf = grabFramebuffer();

@@ -5,6 +5,7 @@
 #include "seer/viewerbase.h"
 
 class QProcess;
+class F3DWidget;
 
 class F3DViewer : public ViewerBase {
     Q_OBJECT
@@ -21,10 +22,13 @@ public:
 
     QSize getContentSize() const override;
     void updateDPR(qreal) override;
+    void updateTheme(int) override;
 
 protected:
+    void keyPressEvent(QKeyEvent* event) override;
+
     void loadImpl(QBoxLayout* lay_content, QHBoxLayout* lay_ctrlbar) override;
-    void resizeEvent(QResizeEvent* event) override;
 
 private:
+    F3DWidget* m_view = nullptr;
 };

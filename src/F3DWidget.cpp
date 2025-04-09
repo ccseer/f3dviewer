@@ -42,8 +42,6 @@ bool F3DWidget::load(const QString& path)
             //
             update();
         });
-        QElapsedTimer et;
-        et.start();
         f3d::engine::autoloadPlugins();
         m_engine = std::make_unique<f3d::engine>(
             f3d::engine::createExternal([this](const char* name) {
@@ -52,14 +50,13 @@ bool F3DWidget::load(const QString& path)
         auto& opt              = m_engine->getOptions();
         opt.render.grid.enable = true;
         // opt.ui.loader_progress = true;
-        // opt.render.background.color = {0, 0, 0};
+        // opt.render.background.color = {0.2, 0.2, 0.2};
         //  The default scene always has at most one animation.
         //  The animation index is 0 if no animation is present.
         opt.scene.animation.index = -1;
 
         m_engine->getWindow().setSize(width(), height());
         m_engine->getScene().add(path.toStdString());
-        qprintt << "load" << et.elapsed();
         // initial state
         auto& cam = m_engine->getWindow().getCamera();
         cam.resetToBounds(0.7);
@@ -459,4 +456,17 @@ void F3DWidget::onAnimTick()
         m_animation.pos = std::fmod(m_animation.pos, max);
     }
     m_engine->getScene().loadAnimationTime(m_animation.pos);
+}
+
+void F3DWidget::setOption(const QString& key, const QString& v)
+{
+    if (!m_engine) {
+        return;
+    }
+    try {
+        m_engine->getOptions().setAsString(key.toStdString(), v.toStdString());
+    }
+    catch (...) {
+        qprintt << "Error setting option" << key << v;
+    }
 }

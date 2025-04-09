@@ -7,6 +7,8 @@
 
 int main(int argc, char* argv[])
 {
+    qputenv("QT_ENABLE_HIGHDPI_SCALING", "0");
+    qunsetenv("QT_SCALE_FACTOR");
     QApplication app(argc, argv);
     QElapsedTimer et;
     et.start();

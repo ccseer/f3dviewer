@@ -35,4 +35,10 @@ target_include_directories(viewer PRIVATE ../src)
 
 # seer
 target_include_directories(viewer PRIVATE Seer-sdk)
+target_sources(viewer
+    PRIVATE
+        Seer-sdk/seer/viewerbase.h
+        Seer-sdk/seer/viewoption.h
+)
+
 

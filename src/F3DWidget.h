@@ -4,7 +4,6 @@
 #include <QOpenGLWidget>
 #include <QTimer>
 #include <QVector3D>
-#include <memory>
 
 namespace f3d {
 class engine;
@@ -17,6 +16,8 @@ public:
     ~F3DWidget() override;
 
     bool load(const QString& path);
+
+    void setOption(const QString& key, const QString& v);
 
 protected:
     void initializeGL() override;

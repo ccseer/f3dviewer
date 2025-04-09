@@ -33,9 +33,10 @@ void F3DViewer::updateTheme(int t)
     m_d->d->theme = t;
     auto bg       = qApp->palette().color(QPalette::Window);
     if (m_view) {
-        m_view->setOption(
-            "render.background.color",
-            QString("%1,%2,%3").arg(bg.red()).arg(bg.green()).arg(bg.blue()));
+        m_view->setOption("render.background.color", QString("%1,%2,%3")
+                                                         .arg(bg.redF())
+                                                         .arg(bg.greenF())
+                                                         .arg(bg.blueF()));
     }
 }
 

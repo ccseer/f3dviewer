@@ -21,6 +21,8 @@ public:
     QVariant getOption(const QString& key) const;
 
     bool hasAnimation() const;
+    void setAnimationState(bool play);
+    bool isAnimationRunning() const;
 
     enum CameraPos {
         CP_Front   = Qt::Key_1,

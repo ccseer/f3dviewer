@@ -30,7 +30,6 @@ F3DWidget::F3DWidget(QWidget* parent) : QOpenGLWidget(parent)
 
 F3DWidget::~F3DWidget()
 {
-    qprintt << "~" << this;
     m_engine.reset();
     qprintt << "~" << this;
 }
@@ -211,21 +210,21 @@ void F3DWidget::handleKey(QKeyEvent* event)
             moveCamera((CameraPos)event->key());
             break;
         }
-        case Qt::Key_7: {
-            // opt.toggle("scene.camera.orthographic");
-            break;
-        }
-        case Qt::Key_8: {
-            // isometric view?
-            break;
-        }
-        // case Qt::Key_W: {
-        //   not working
-        //    opt.scene.animation.index += 1;
-        //    qprintt << "animation index" << opt.scene.animation.index
-        //            << m_engine->getScene().animationTimeRange();
-        //    break;
-        //}
+        // case Qt::Key_7: {
+        //     // opt.toggle("scene.camera.orthographic");
+        //     break;
+        // }
+        // case Qt::Key_8: {
+        //     // isometric view?
+        //     break;
+        // }
+        //  case Qt::Key_W: {
+        //    not working
+        //     opt.scene.animation.index += 1;
+        //     qprintt << "animation index" << opt.scene.animation.index
+        //             << m_engine->getScene().animationTimeRange();
+        //     break;
+        // }
         case Qt::Key_C: {
             if (ctrl) {
                 QImage buf = grabFramebuffer();
@@ -485,4 +484,27 @@ QVariant F3DWidget::getOption(const QString& key) const
 bool F3DWidget::hasAnimation() const
 {
     return m_engine && m_engine->getScene().animationTimeRange().second > 0.;
+}
+
+void F3DWidget::setAnimationState(bool play)
+{
+    if (!hasAnimation()) {
+        return;
+    }
+    m_animation.playing = play;
+    if (play) {
+        m_animation.elapsed.restart();
+        m_animation.timer.start();
+    }
+    else {
+        m_animation.timer.stop();
+    }
+}
+
+bool F3DWidget::isAnimationRunning() const
+{
+    if (!hasAnimation()) {
+        return false;
+    }
+    return m_animation.playing;
 }

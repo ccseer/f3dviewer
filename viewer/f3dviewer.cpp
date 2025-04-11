@@ -81,12 +81,8 @@ void F3DViewer::initSidebar()
     m_sidebar = new SidebarWnd(this);
 
     //
-    connect(m_sidebar, &SidebarWnd::sigPlayAnimation, this, [this](bool play) {
-        m_view->setOption("animation.playing", play ? "1" : "0");
-    });
-
-    connect(m_sidebar, &SidebarWnd::sigResetAnimationPos, this,
-            [this]() { m_view->setOption("animation.reset", "1"); });
+    connect(m_sidebar, &SidebarWnd::sigPlayAnimation, this,
+            [this](bool play) { m_view->setAnimationState(play); });
 
     //
     connect(m_sidebar, &SidebarWnd::sigCameraReset, this,
@@ -133,5 +129,6 @@ void F3DViewer::syncSidebar()
         m_view->getOption("render.show_edges").toBool(),
         m_view->getOption("model.point_sprites.enable").toBool(),
         m_view->getOption("ui.metadata").toBool(),
-        m_view->getOption("ui.fps").toBool(), m_view->hasAnimation());
+        m_view->getOption("ui.fps").toBool(), m_view->hasAnimation(),
+        m_view->isAnimationRunning());
 }

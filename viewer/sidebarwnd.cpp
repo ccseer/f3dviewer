@@ -2,11 +2,6 @@
 
 #include "ui_sidebarwnd.h"
 
-namespace {
-constexpr auto g_ani_play  = "Play";
-constexpr auto g_ani_pause = "Pause";
-}  // namespace
-
 SidebarWnd::SidebarWnd(QWidget *parent)
     : QWidget(parent), ui(new Ui::SidebarWnd)
 {
@@ -14,7 +9,9 @@ SidebarWnd::SidebarWnd(QWidget *parent)
     layout()->setContentsMargins(0, 0, 0, 0);
     layout()->setSpacing(0);
     ui->scrollArea->setFrameStyle(QFrame::NoFrame);
-    ui->pushButton_ani_play->setText(g_ani_play);
+
+    updateAnimationPlayBtnText();
+    ui->pushButton_ani_reset->setVisible(false);
 
     connect(ui->pushButton_camera_reset, &QPushButton::clicked, this,
             &SidebarWnd::sigCameraReset);
@@ -48,8 +45,13 @@ SidebarWnd::~SidebarWnd()
     delete ui;
 }
 
-void SidebarWnd::syncControls(
-    bool grid, bool edge, bool ps, bool meta, bool fps, bool show_ani)
+void SidebarWnd::syncControls(bool grid,
+                              bool edge,
+                              bool ps,
+                              bool meta,
+                              bool fps,
+                              bool ani_show_grp,
+                              bool ani_running)
 {
     ui->checkBox_display_grid->setChecked(grid);
     ui->checkBox_display_edge->setChecked(edge);
@@ -57,19 +59,28 @@ void SidebarWnd::syncControls(
     ui->checkBox_display_metadata->setChecked(meta);
     ui->checkBox_display_fps->setChecked(fps);
 
-    ui->widget_grp_animation->setVisible(show_ani);
+    ui->widget_grp_animation->setVisible(ani_show_grp);
+    m_ani_run = ani_running;
+    updateAnimationPlayBtnText();
 }
 
 void SidebarWnd::on_pushButton_ani_play_clicked()
 {
     m_ani_run = !m_ani_run;
-    ui->pushButton_ani_play->setText(m_ani_run ? g_ani_play : g_ani_pause);
+    updateAnimationPlayBtnText();
     emit sigPlayAnimation(m_ani_run);
 }
 
 void SidebarWnd::on_pushButton_ani_reset_clicked()
 {
     m_ani_run = false;
-    ui->pushButton_ani_play->setText(g_ani_pause);
+    updateAnimationPlayBtnText();
     emit sigResetAnimationPos();
+}
+
+void SidebarWnd::updateAnimationPlayBtnText()
+{
+    constexpr auto g_ani_play  = "Play";
+    constexpr auto g_ani_pause = "Pause";
+    ui->pushButton_ani_play->setText(m_ani_run ? g_ani_pause : g_ani_play);
 }

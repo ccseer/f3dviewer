@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.19)
-project(viewer LANGUAGES CXX)
+project(f3dviewer LANGUAGES CXX)
 
 set(BUILD_AS_PLUGIN ON)
 
@@ -13,16 +13,16 @@ set(VIEWER_SOURCES
     sidebarwnd.ui
     sidebarwnd.cpp
     sidebarwnd.h
-    f3dviewer.json
+    bin/plugin.json
 )
 
 if(BUILD_AS_PLUGIN)
-    qt6_add_plugin(viewer SHARED ${VIEWER_SOURCES})
+    qt6_add_plugin(${PROJECT_NAME} SHARED ${VIEWER_SOURCES})
 else()
-    qt_add_executable(viewer WIN32 ${VIEWER_SOURCES} test.cpp)
+    qt_add_executable(${PROJECT_NAME} WIN32 ${VIEWER_SOURCES} test.cpp)
 endif()
 
-target_link_libraries(viewer
+target_link_libraries(${PROJECT_NAME}
     PRIVATE
         Qt::Core
         Qt::Gui
@@ -33,19 +33,19 @@ target_link_libraries(viewer
 # f3d
 set(CMAKE_PREFIX_PATH "../F3D/lib/cmake/f3d")
 find_package(f3d REQUIRED COMPONENTS library)
-target_link_libraries(viewer PRIVATE f3d::libf3d)
+target_link_libraries(${PROJECT_NAME} PRIVATE f3d::libf3d)
 include_directories("../F3D/include")
 
-target_sources(viewer
+target_sources(${PROJECT_NAME}
     PRIVATE
         ../src/F3DWidget.cpp
         ../src/F3DWidget.h
 )
-target_include_directories(viewer PRIVATE ../src)
+target_include_directories(${PROJECT_NAME} PRIVATE ../src)
 
 # seer
-target_include_directories(viewer PRIVATE Seer-sdk)
-target_sources(viewer
+target_include_directories(${PROJECT_NAME} PRIVATE Seer-sdk)
+target_sources(${PROJECT_NAME}
     PRIVATE
         Seer-sdk/seer/viewerbase.h
         Seer-sdk/seer/viewoption.h

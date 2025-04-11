@@ -5,7 +5,7 @@
     "roles": [
         "viewer"
     ],
-    "entry": "viewer.dll",
+    "entry": "f3dviewer.dll",
     "args": [],
     "formats": [
         "vtk",
@@ -53,7 +53,7 @@
         "usdz",
         "vdb"
     ],
-    "appMinVersion": "3.9.10",
+    "appMinVersion": "4.0.0",
     "author": "corey",
     "releaseDate": "2025-04-11"
 }

@@ -53,3 +53,5 @@ compile_commands.json
 
 *_qmlcache.qrc
 F3D/*
+viewer/bin/usd/*
+viewer/f3dviewer.zip

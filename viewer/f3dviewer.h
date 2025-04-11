@@ -7,7 +7,7 @@ class SidebarWnd;
 
 class F3DViewer : public ViewerBase {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID ViewerBase_iid FILE "F3DViewer.json")
+    Q_PLUGIN_METADATA(IID ViewerBase_iid FILE "bin/plugin.json")
     Q_INTERFACES(ViewerBase)
 public:
     explicit F3DViewer(QWidget* parent = nullptr);

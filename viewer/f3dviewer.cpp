@@ -85,10 +85,8 @@ void F3DViewer::initSidebar()
     m_btn     = new QToolButton(this);
     m_btn->setText("Sidebar");
     m_btn->setShortcut({"Tab"});
-    connect(m_btn, &QToolButton::clicked, this, [=]() {
-        qprintt << m_sidebar->isVisible();
-        m_sidebar->setVisible(!m_sidebar->isVisible());
-    });
+    connect(m_btn, &QToolButton::clicked, this,
+            [=]() { m_sidebar->setVisible(!m_sidebar->isVisible()); });
 
     //
     connect(m_sidebar, &SidebarWnd::sigPlayAnimation, this,

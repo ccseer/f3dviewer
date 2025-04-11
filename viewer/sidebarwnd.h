@@ -13,6 +13,8 @@ public:
     explicit SidebarWnd(QWidget *parent = nullptr);
     ~SidebarWnd() override;
 
+    void updateDPR(qreal r);
+
     Q_SIGNAL void sigPlayAnimation(bool play);
     Q_SIGNAL void sigResetAnimationPos();
 

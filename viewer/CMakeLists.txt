@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.19)
 project(viewer LANGUAGES CXX)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets OpenGLWidgets)
+set(BUILD_AS_PLUGIN ON)
+
+find_package(Qt6 6.5 REQUIRED COMPONENTS Gui Core Widgets OpenGLWidgets)
 
 qt_standard_project_setup()
 
-qt_add_executable(viewer
-    WIN32 MACOSX_BUNDLE
-    test.cpp
+set(VIEWER_SOURCES
     f3dviewer.cpp
     f3dviewer.h
     sidebarwnd.ui
@@ -16,9 +16,16 @@ qt_add_executable(viewer
     f3dviewer.json
 )
 
+if(BUILD_AS_PLUGIN)
+    qt6_add_plugin(viewer SHARED ${VIEWER_SOURCES})
+else()
+    qt_add_executable(viewer WIN32 ${VIEWER_SOURCES} test.cpp)
+endif()
+
 target_link_libraries(viewer
     PRIVATE
         Qt::Core
+        Qt::Gui
         Qt::Widgets
         Qt::OpenGLWidgets
 )
@@ -43,5 +50,3 @@ target_sources(viewer
         Seer-sdk/seer/viewerbase.h
         Seer-sdk/seer/viewoption.h
 )
-
-

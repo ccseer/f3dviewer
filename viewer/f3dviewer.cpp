@@ -26,7 +26,7 @@ QSize F3DViewer::getContentSize() const
 void F3DViewer::updateDPR(qreal r)
 {
     m_d->d->dpr = r;
-    m_sidebar->setFixedWidth(r * 300);
+    m_sidebar->updateDPR(r);
     // m_view: "ui.scale";
 }
 

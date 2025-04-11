@@ -45,6 +45,20 @@ SidebarWnd::~SidebarWnd()
     delete ui;
 }
 
+void SidebarWnd::updateDPR(qreal r)
+{
+    setFixedWidth(r * 300);
+    const auto list = {ui->label_camera_reset, ui->label_camera_x,
+                       ui->label_camera_y, ui->label_camera_z};
+    int w           = 0;
+    for (auto i : list) {
+        w = qMax(w, i->fontMetrics().horizontalAdvance(i->text()));
+    }
+    for (auto i : list) {
+        i->setFixedWidth(w);
+    }
+}
+
 void SidebarWnd::syncControls(bool grid,
                               bool edge,
                               bool ps,

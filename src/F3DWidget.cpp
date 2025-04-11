@@ -17,8 +17,8 @@
 #define qprintt qDebug() << "[F3DWidget]"
 
 namespace {
-constexpr auto g_shift_delta  = 0.1f;
-constexpr float g_zoom_factor = 0.001f;
+constexpr auto g_shift_delta   = 0.1f;
+constexpr float g_zoom_factor  = 0.001f;
 constexpr float g_rotate_speed = 0.5f;
 }  // namespace
 

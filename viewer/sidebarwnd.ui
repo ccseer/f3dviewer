@@ -270,7 +270,7 @@
             <item>
              <widget class="QCheckBox" name="checkBox_display_grid">
               <property name="text">
-               <string>Show Grid</string>
+               <string>Grid</string>
               </property>
              </widget>
             </item>
@@ -281,7 +281,7 @@
             <item>
              <widget class="QCheckBox" name="checkBox_display_fps">
               <property name="text">
-               <string>Show FPS</string>
+               <string>FPS</string>
               </property>
              </widget>
             </item>
@@ -292,7 +292,7 @@
             <item>
              <widget class="QCheckBox" name="checkBox_display_metadata">
               <property name="text">
-               <string>Show Metadata</string>
+               <string>Metadata</string>
               </property>
              </widget>
             </item>
@@ -303,7 +303,7 @@
             <item>
              <widget class="QCheckBox" name="checkBox_display_edge">
               <property name="text">
-               <string>Show Edge</string>
+               <string>Edge</string>
               </property>
              </widget>
             </item>
@@ -338,7 +338,7 @@
             <item>
              <widget class="QCheckBox" name="checkBox_display_ponit_sprites">
               <property name="text">
-               <string>Show Point Sprites</string>
+               <string>Point Sprites</string>
               </property>
              </widget>
             </item>

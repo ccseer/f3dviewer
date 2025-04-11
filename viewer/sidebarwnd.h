@@ -41,8 +41,8 @@ public:
                       bool ani_running);
 
 private:
-    void on_pushButton_ani_play_clicked();
-    void on_pushButton_ani_reset_clicked();
+    Q_SLOT void on_pushButton_ani_play_clicked();
+    Q_SLOT void on_pushButton_ani_reset_clicked();
     void updateAnimationPlayBtnText();
 
     void initKeys();

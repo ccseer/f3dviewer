@@ -114,9 +114,7 @@ void SidebarWnd::on_pushButton_ani_reset_clicked()
 
 void SidebarWnd::updateAnimationPlayBtnText()
 {
-    constexpr auto g_ani_play  = "Play";
-    constexpr auto g_ani_pause = "Pause";
-    ui->pushButton_ani_play->setText(m_ani_run ? g_ani_pause : g_ani_play);
+    ui->pushButton_ani_play->setText(m_ani_run ? "Pause" : "Play");
 }
 
 void SidebarWnd::initKeys()
@@ -124,71 +122,53 @@ void SidebarWnd::initKeys()
     ui->label_keys->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     ui->label_keys->setWordWrap(true);
 
-    QString text =
-R"(Left Button Drag
-    Rotate camera
-Shift + Left Button Drag
-    Fine rotation
-Ctrl + Left Button Drag
-    Roll camera (around view axis)
-Right Button Drag
-    Pan camera
-Shift + Right Button Drag
-    Fine panning
-Mouse Wheel Scroll
-    Zoom in/out
-Shift + Mouse Wheel Scroll
-    Fine zoom
-Double Click Left Button
-    Reset camera to default view
+    const QMap<QString, QString> mouse
+        = {{"Left Button Drag", "Rotate camera"},
+           {"Shift + Left Button Drag", "Fine rotation"},
+           {"Ctrl + Left Button Drag", "Roll camera (around view axis)"},
+           {"Right Button Drag", "Pan camera"},
+           {"Shift + Right Button Drag", "Fine panning"},
+           {"Mouse Wheel Scroll", "Zoom in/out"},
+           {"Shift + Mouse Wheel Scroll", "Fine zoom"},
+           {"Double Click Left Button", "Reset camera to default view"}};
+    const QMap<QString, QString> key
+        = {{"1-6", "Switch camera views"},
+           {"Ctrl+C", "Copy current view"},
+           {"B", "Toggle scalar bar"},
+           {"Ctrl+P", "Increase model transparency"},
+           {"Shift+P", "Decrease model transparency"},
+           {"P", "Toggle translucency effect"},
+           {"A", "Toggle anti-aliasing"},
+           {"Shift+A", "Toggle skeleton display"},
+           {"T", "Toggle tone mapping"},
+           {"E", "Toggle model edges"},
+           {"G", "Toggle ground grid"},
+           {"M", "Toggle metadata display"},
+           {"Z", "Toggle FPS counter"},
+           {"V", "Toggle volume rendering"},
+           {"I", "Invert volume rendering"},
+           {"O", "Toggle point sprites"},
+           {"U", "Toggle background blur"},
+           {"Q", "Toggle ambient occlusion"},
+           {"F", "Toggle ambient lighting"},
+           {"J", "Toggle skybox background"},
+           {"L", "Increase light intensity"},
+           {"Shift+L", "Decrease light intensity"},
+           {"Enter", "Reset camera view"},
+           {"Tab", "Toggle sidebar"}};
 
-1-6
-    Switch camera views
-Ctrl+C
-    Copy current view
-B
-    Toggle scalar bar
-Ctrl+P
-    Increase model transparency
-Shift+P
-    Decrease model transparency
-P
-    Toggle translucency effect
-A
-    Toggle anti-aliasing
-Shift+A
-    Toggle skeleton display
-T
-    Toggle tone mapping
-E
-    Toggle model edges
-G
-    Toggle ground grid
-M
-    Toggle metadata display
-Z
-    Toggle FPS counter
-V
-    Toggle volume rendering
-I
-    Invert volume rendering
-O
-    Toggle point sprites
-U
-    Toggle background blur
-Q
-    Toggle ambient occlusion
-F
-    Toggle ambient lighting
-J
-    Toggle skybox background
-L
-    Increase light intensity
-Shift+L
-    Decrease light intensity
-Enter
-    Reset camera view
-Tab
-    Toggle Sidebar)";
+    constexpr auto sep = "\n";
+    QString space      = "    ";
+    QString text;
+    for (const auto &i : mouse.keys()) {
+        text.append(i).append(sep).append(space).append(mouse[i]);
+        text.append("\n");
+    }
+    text.append("\n");
+    for (const auto &i : key.keys()) {
+        text.append(i).append(sep).append(space).append(key[i]);
+        text.append("\n");
+    }
+
     ui->label_keys->setText(text);
 }

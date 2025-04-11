@@ -18,6 +18,8 @@ int main(int argc, char* argv[])
     p->d->dpr  = 1;
     p->d->path = "c:/d/1.gltf";
     p->d->path = "c:/d/2.3ds";
+    //
+    //p->d->path = "d:/3d/p.3ds";
     if (!QFile::exists(p->d->path)) {
         qDebug() << "file not found" << p->d->path;
         return -1;

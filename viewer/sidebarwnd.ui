@@ -87,14 +87,14 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_ani_reset_3">
+             <widget class="QPushButton" name="pushButton_camera_top">
               <property name="text">
                <string>Top</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_ani_play_3">
+             <widget class="QPushButton" name="pushButton_camera_btm">
               <property name="text">
                <string>Bottom</string>
               </property>
@@ -125,14 +125,14 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_ani_play_14">
+             <widget class="QPushButton" name="pushButton_camera_font">
               <property name="text">
                <string>Front</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_ani_reset_6">
+             <widget class="QPushButton" name="pushButton_camera_back">
               <property name="text">
                <string>Back</string>
               </property>
@@ -187,7 +187,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_ani_play_12">
+             <widget class="QPushButton" name="pushButton_camera_reset">
               <property name="text">
                <string>Reset</string>
               </property>
@@ -218,14 +218,14 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_ani_play_20">
+             <widget class="QPushButton" name="pushButton_camera_left">
               <property name="text">
                <string>Left</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_ani_play_21">
+             <widget class="QPushButton" name="pushButton_camera_right">
               <property name="text">
                <string>Right</string>
               </property>
@@ -255,7 +255,7 @@
           <item row="1" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_7">
             <item>
-             <widget class="QCheckBox" name="checkBox_2">
+             <widget class="QCheckBox" name="checkBox_display_grid">
               <property name="text">
                <string>Show Grid</string>
               </property>
@@ -266,7 +266,7 @@
           <item row="5" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_9">
             <item>
-             <widget class="QCheckBox" name="checkBox_4">
+             <widget class="QCheckBox" name="checkBox_display_fps">
               <property name="text">
                <string>Show FPS</string>
               </property>
@@ -277,7 +277,7 @@
           <item row="6" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_6">
             <item>
-             <widget class="QCheckBox" name="checkBox">
+             <widget class="QCheckBox" name="checkBox_display_metadata">
               <property name="text">
                <string>Show Metadata</string>
               </property>
@@ -288,7 +288,7 @@
           <item row="2" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_8">
             <item>
-             <widget class="QCheckBox" name="checkBox_3">
+             <widget class="QCheckBox" name="checkBox_display_edge">
               <property name="text">
                <string>Show Edge</string>
               </property>
@@ -323,7 +323,7 @@
           <item row="3" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_10">
             <item>
-             <widget class="QCheckBox" name="checkBox_5">
+             <widget class="QCheckBox" name="checkBox_display_ponit_sprites">
               <property name="text">
                <string>Show Point Sprites</string>
               </property>

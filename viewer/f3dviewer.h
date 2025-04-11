@@ -28,6 +28,8 @@ protected:
     void loadImpl(QBoxLayout* lay_content, QHBoxLayout* lay_ctrlbar) override;
 
 private:
+    void initSidebar();
+    void syncSidebar();
     
     SidebarWnd* m_sidebar = nullptr;
     F3DWidget* m_view = nullptr;

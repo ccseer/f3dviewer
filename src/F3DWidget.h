@@ -18,6 +18,8 @@ public:
     bool load(const QString& path);
 
     void setOption(const QString& key, const QString& v);
+    QVariant getOption(const QString& key) const;
+    bool hasAnimation() const;
 
 protected:
     void initializeGL() override;

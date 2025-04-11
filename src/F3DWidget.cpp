@@ -14,12 +14,12 @@
 #include <QVariantAnimation>
 #include <QVector3D>
 
-#define qprintt qDebug() << "[F3DWindow]"
+#define qprintt qDebug() << "[F3DWidget]"
 
 namespace {
-constexpr auto g_shift_delta   = 0.1f;
-constexpr float g_zoom_factor  = 0.001f;
-constexpr float g_zoom_speed   = 0.01f;
+constexpr auto g_shift_delta  = 0.1f;
+constexpr float g_zoom_factor = 0.001f;
+// constexpr float g_zoom_speed   = 0.01f;
 constexpr float g_rotate_speed = 0.5f;
 }  // namespace
 
@@ -459,4 +459,26 @@ void F3DWidget::setOption(const QString& key, const QString& v)
     catch (...) {
         qprintt << "Error setting option" << key << v;
     }
+}
+
+QVariant F3DWidget::getOption(const QString& key) const
+{
+    if (!m_engine) {
+        return {};
+    }
+    QVariant ret;
+    try {
+        ret = QVariant::fromStdVariant(
+            m_engine->getOptions().get(key.toStdString()));
+    }
+    catch (...) {
+        qprintt << "Error getting option" << key;
+    }
+
+    return ret;
+}
+
+bool F3DWidget::hasAnimation() const
+{
+    return m_engine && m_engine->getScene().animationTimeRange().second > 0.;
 }

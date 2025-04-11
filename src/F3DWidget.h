@@ -19,7 +19,19 @@ public:
 
     void setOption(const QString& key, const QString& v);
     QVariant getOption(const QString& key) const;
+
     bool hasAnimation() const;
+
+    enum CameraPos {
+        CP_Front   = Qt::Key_1,
+        CP_Back    = Qt::Key_2,
+        CP_Left    = Qt::Key_3,
+        CP_Right   = Qt::Key_4,
+        CP_Top     = Qt::Key_5,
+        CP_Bottom  = Qt::Key_6,
+        CP_Default = Qt::Key_Return,
+    };
+    void moveCamera(CameraPos cp);
 
 protected:
     void initializeGL() override;

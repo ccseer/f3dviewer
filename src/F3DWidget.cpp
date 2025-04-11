@@ -208,32 +208,7 @@ void F3DWidget::handleKey(QKeyEvent* event)
         case Qt::Key_4:
         case Qt::Key_5:
         case Qt::Key_6: {
-            auto& cam        = m_engine->getWindow().getCamera();
-            const auto focal = cam.getFocalPoint();
-            const auto pos   = cam.getPosition();
-            double dist      = std::sqrt(std::pow(focal[0] - pos[0], 2)
-                                         + std::pow(focal[1] - pos[1], 2)
-                                         + std::pow(focal[2] - pos[2], 2));
-            // [1~6] => [front, back, left, right, top, bottom]
-            const QHash<int, QVector3D> directions{
-                {Qt::Key_1, QVector3D(0, 0, -1)},
-                {Qt::Key_2, QVector3D(0, 0, 1)},
-                {Qt::Key_3, QVector3D(-1, 0, 0)},
-                {Qt::Key_4, QVector3D(1, 0, 0)},
-                {Qt::Key_5, QVector3D(0, 1, 0)},
-                {Qt::Key_6, QVector3D(0, -1, 0)},
-            };
-            QVector3D up(0, 1, 0);
-            const QVector3D direction = directions[event->key()];
-            if (event->key() == Qt::Key_5) {
-                up = QVector3D(0, 0, 1);
-            }
-            else if (event->key() == Qt::Key_6) {
-                up = QVector3D(0, 0, -1);
-            }
-            auto target
-                = QVector3D(focal[0], focal[1], focal[2]) - direction * dist;
-            moveCameraTo(target, QVector3D(focal[0], focal[1], focal[2]), up);
+            moveCamera((CameraPos)event->key());
             break;
         }
         case Qt::Key_7: {
@@ -376,7 +351,7 @@ void F3DWidget::handleKey(QKeyEvent* event)
         }
         case Qt::Key_Return:
         case Qt::Key_Enter: {
-            m_engine->getWindow().getCamera().resetToDefault();
+            moveCamera(CP_Default);
             break;
         }
         // case Qt::Key_R: {
@@ -394,6 +369,35 @@ void F3DWidget::handleKey(QKeyEvent* event)
     catch (...) {
         qprintt << "Error handling key" << event->text();
     }
+}
+
+void F3DWidget::moveCamera(CameraPos cp)
+{
+    if (cp == CP_Default) {
+        m_engine->getWindow().getCamera().resetToDefault();
+        return;
+    }
+    auto& cam        = m_engine->getWindow().getCamera();
+    const auto focal = cam.getFocalPoint();
+    const auto pos   = cam.getPosition();
+    double dist      = std::sqrt(std::pow(focal[0] - pos[0], 2)
+                                 + std::pow(focal[1] - pos[1], 2)
+                                 + std::pow(focal[2] - pos[2], 2));
+    const QHash<int, QVector3D> directions{
+        {CP_Front, QVector3D(0, 0, -1)}, {CP_Back, QVector3D(0, 0, 1)},
+        {CP_Left, QVector3D(-1, 0, 0)},  {CP_Right, QVector3D(1, 0, 0)},
+        {CP_Top, QVector3D(0, 1, 0)},    {CP_Bottom, QVector3D(0, -1, 0)},
+    };
+    QVector3D up(0, 1, 0);
+    const QVector3D direction = directions[cp];
+    if (cp == CP_Top) {
+        up = QVector3D(0, 0, 1);
+    }
+    else if (cp == CP_Bottom) {
+        up = QVector3D(0, 0, -1);
+    }
+    auto target = QVector3D(focal[0], focal[1], focal[2]) - direction * dist;
+    moveCameraTo(target, QVector3D(focal[0], focal[1], focal[2]), up);
 }
 
 void F3DWidget::moveCameraTo(const QVector3D& new_pos,

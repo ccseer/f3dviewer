@@ -30,6 +30,7 @@ protected:
 private:
     void initSidebar();
     void syncSidebar();
+    //void moveCamera(const QString& key);
     
     SidebarWnd* m_sidebar = nullptr;
     F3DWidget* m_view = nullptr;

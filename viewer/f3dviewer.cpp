@@ -89,20 +89,20 @@ void F3DViewer::initSidebar()
             [this]() { m_view->setOption("animation.reset", "1"); });
 
     //
-    // connect(m_sidebar, &SidebarWnd::sigCameraReset, this,
-    //        [this]() { m_view->setOption("camera.resetPosition", "1"); });
-    // connect(m_sidebar, &SidebarWnd::sigCameraFront, this,
-    //        [this]() { m_view->setOption("camera.front", "1"); });
-    // connect(m_sidebar, &SidebarWnd::sigCameraBack, this,
-    //        [this]() { m_view->setOption("camera.back", "1"); });
-    // connect(m_sidebar, &SidebarWnd::sigCameraLeft, this,
-    //        [this]() { m_view->setOption("camera.left", "1"); });
-    // connect(m_sidebar, &SidebarWnd::sigCameraRight, this,
-    //        [this]() { m_view->setOption("camera.right", "1"); });
-    // connect(m_sidebar, &SidebarWnd::sigCameraTop, this,
-    //        [this]() { m_view->setOption("camera.top", "1"); });
-    // connect(m_sidebar, &SidebarWnd::sigCameraBottom, this,
-    //        [this]() { m_view->setOption("camera.bottom", "1"); });
+    connect(m_sidebar, &SidebarWnd::sigCameraReset, this,
+            [this]() { m_view->moveCamera(F3DWidget::CP_Default); });
+    connect(m_sidebar, &SidebarWnd::sigCameraFront, this,
+            [this]() { m_view->moveCamera(F3DWidget::CP_Front); });
+    connect(m_sidebar, &SidebarWnd::sigCameraBack, this,
+            [this]() { m_view->moveCamera(F3DWidget::CP_Back); });
+    connect(m_sidebar, &SidebarWnd::sigCameraLeft, this,
+            [this]() { m_view->moveCamera(F3DWidget::CP_Left); });
+    connect(m_sidebar, &SidebarWnd::sigCameraRight, this,
+            [this]() { m_view->moveCamera(F3DWidget::CP_Right); });
+    connect(m_sidebar, &SidebarWnd::sigCameraTop, this,
+            [this]() { m_view->moveCamera(F3DWidget::CP_Top); });
+    connect(m_sidebar, &SidebarWnd::sigCameraBottom, this,
+            [this]() { m_view->moveCamera(F3DWidget::CP_Bottom); });
 
     //
     connect(m_sidebar, &SidebarWnd::sigShowGrid, this, [this](bool on) {

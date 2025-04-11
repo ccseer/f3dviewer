@@ -40,12 +40,13 @@ public:
                       bool ani_show_grp,
                       bool ani_running);
 
-private slots:
+private:
     void on_pushButton_ani_play_clicked();
     void on_pushButton_ani_reset_clicked();
     void updateAnimationPlayBtnText();
 
-private:
+    void initKeys();
+
     bool m_ani_run = true;
 
     Ui::SidebarWnd *ui;

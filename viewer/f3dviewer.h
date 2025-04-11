@@ -30,7 +30,8 @@ protected:
 private:
     void initSidebar();
     void syncSidebar();
-    
+
+    QToolButton* m_btn    = nullptr;
     SidebarWnd* m_sidebar = nullptr;
-    F3DWidget* m_view = nullptr;
+    F3DWidget* m_view     = nullptr;
 };

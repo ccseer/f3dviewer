@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QKeyEvent>
+#include <QToolButton>
 
 #include "F3DWidget.h"
 #include "sidebarwnd.h"
@@ -27,6 +28,7 @@ void F3DViewer::updateDPR(qreal r)
 {
     m_d->d->dpr = r;
     m_sidebar->updateDPR(r);
+    m_btn->setFixedSize(70 * r, 30 * r);
     // m_view: "ui.scale";
 }
 
@@ -68,6 +70,7 @@ void F3DViewer::loadImpl(QBoxLayout* lay_content, QHBoxLayout* lay_ctrlbar)
     }
     if (lay_ctrlbar) {
         lay_ctrlbar->addStretch();
+        lay_ctrlbar->addWidget(m_btn);
     }
     syncSidebar();
     updateTheme(m_d->d->theme);
@@ -79,6 +82,13 @@ void F3DViewer::loadImpl(QBoxLayout* lay_content, QHBoxLayout* lay_ctrlbar)
 void F3DViewer::initSidebar()
 {
     m_sidebar = new SidebarWnd(this);
+    m_btn     = new QToolButton(this);
+    m_btn->setText("Sidebar");
+    m_btn->setShortcut({"Tab"});
+    connect(m_btn, &QToolButton::clicked, this, [=]() {
+        qprintt << m_sidebar->isVisible();
+        m_sidebar->setVisible(!m_sidebar->isVisible());
+    });
 
     //
     connect(m_sidebar, &SidebarWnd::sigPlayAnimation, this,

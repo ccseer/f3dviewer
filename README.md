@@ -30,3 +30,9 @@ A lightweight 3D viewer and Seer plugin based on [F3D SDK](https://github.com/f3
    Open the project in Qt Creator or Visual Studio, then simply build it.
 
    Make sure you select the correct Qt kit (Desktop Qt 6.x) if prompted.
+
+## TODO:
+
+- scale font for fps/metadata
+- animation control
+- use args as options from plugin.json 

@@ -37,3 +37,4 @@ A lightweight 3D viewer and Seer plugin based on [F3D SDK](https://github.com/f3
 - animation control
 - use args as options from plugin.json 
 - load in a different thread
+- read size from json config

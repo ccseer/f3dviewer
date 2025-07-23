@@ -1,6 +1,3 @@
-[submodule "Seer-sdk"]
-	path = viewer/Seer-sdk
-	url = https://github.com/ccseer/Seer-sdk
 [submodule "viewer/Seer-sdk"]
 	path = viewer/Seer-sdk
 	url = https://github.com/ccseer/Seer-sdk

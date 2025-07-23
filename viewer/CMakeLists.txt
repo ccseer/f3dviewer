@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 project(f3dviewer LANGUAGES CXX)
 
-# set(BUILD_AS_PLUGIN ON)
+set(BUILD_AS_PLUGIN ON)
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Gui Core Widgets OpenGLWidgets)
 

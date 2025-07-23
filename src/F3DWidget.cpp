@@ -25,6 +25,7 @@ constexpr float g_rotate_speed = 0.5f;
 F3DWidget::F3DWidget(QWidget* parent) : QOpenGLWidget(parent)
 {
     qprintt << this;
+    qprintt << "f3d version" << f3d::engine::getLibInfo().VersionFull;
 }
 
 F3DWidget::~F3DWidget()

@@ -7,8 +7,6 @@ class SidebarWnd;
 
 class F3DViewer : public ViewerBase {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID ViewerBase_iid FILE "bin/plugin.json")
-    Q_INTERFACES(ViewerBase)
 public:
     explicit F3DViewer(QWidget* parent = nullptr);
     ~F3DViewer() override;
@@ -34,4 +32,15 @@ private:
     QToolButton* m_btn    = nullptr;
     SidebarWnd* m_sidebar = nullptr;
     F3DWidget* m_view     = nullptr;
+};
+
+class F3DPlugin : public QObject, public ViewerPluginInterface {
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID ViewerPluginInterface_iid FILE "bin/plugin.json")
+    Q_INTERFACES(ViewerPluginInterface)
+public:
+    ViewerBase* createViewer(QWidget* parent = nullptr) override
+    {
+        return new F3DViewer(parent);
+    }
 };

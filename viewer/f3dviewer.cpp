@@ -5,6 +5,7 @@
 #include <QToolButton>
 
 #include "F3DWidget.h"
+#include "seer/viewer_helper.h"
 #include "sidebarwnd.h"
 
 #define qprintt qDebug() << "[F3DViewer]"
@@ -21,7 +22,16 @@ F3DViewer::~F3DViewer()
 
 QSize F3DViewer::getContentSize() const
 {
-    return m_d->d->dpr * QSize{950, 700};
+    const auto sz_def = m_d->d->dpr * QSize{950, 700};
+    auto cmd          = property(g_property_key_cmd).toStringList();
+    if (!cmd.isEmpty()) {
+        auto parsed = seer::parseViewerSizeFromConfig(cmd);
+        qprintt << "getContentSize: parsed" << parsed << cmd;
+        if (parsed.isValid()) {
+            return parsed;
+        }
+    }
+    return sz_def;
 }
 
 void F3DViewer::updateDPR(qreal r)

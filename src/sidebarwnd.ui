@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>223</width>
-    <height>573</height>
+    <height>820</height>
    </rect>
   </property>
   <layout class="QGridLayout" name="gridLayout">
@@ -22,7 +22,7 @@
         <x>0</x>
         <y>0</y>
         <width>209</width>
-        <height>559</height>
+        <height>900</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -85,6 +85,31 @@
            </layout>
           </item>
           <item row="2" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_ani_selector">
+            <item>
+             <widget class="QLabel" name="label_ani_clip">
+              <property name="text">
+               <string>Clip</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboBox_ani_clip"/>
+            </item>
+           </layout>
+          </item>
+          <item row="3" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_ani_loop">
+            <item>
+             <widget class="QCheckBox" name="checkBox_ani_loop">
+              <property name="text">
+               <string>Loop Playback</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="4" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_ani_progress">
             <item>
              <widget class="QLabel" name="label_ani_progress">
@@ -121,7 +146,7 @@
             </item>
            </layout>
           </item>
-          <item row="3" column="0">
+          <item row="5" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_ani_speed">
             <item>
              <widget class="QLabel" name="label_ani_speed">
@@ -165,33 +190,50 @@
         </widget>
        </item>
        <item>
-        <widget class="QWidget" name="widget_grp_animation_2" native="true">
+        <widget class="QWidget" name="widget_grp_camera" native="true">
          <layout class="QGridLayout" name="gridLayout_3">
-          <item row="4" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item row="0" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
             <item>
-             <widget class="QLabel" name="label_camera_z">
+             <widget class="QLabel" name="label_title_camera">
               <property name="text">
-               <string>z</string>
+               <string>Camera</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_camera_top">
+             <spacer name="horizontalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+             </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_camera_reset">
               <property name="text">
-               <string>Top</string>
+               <string>Reset</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_13">
+            <item>
+             <widget class="QLabel" name="label_camera_reset">
+              <property name="text">
+               <string>Position</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_camera_btm">
-              <property name="text">
-               <string>Bottom</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_9">
+             <spacer name="horizontalSpacer_5">
               <property name="orientation">
                <enum>Qt::Orientation::Horizontal</enum>
               </property>
@@ -206,11 +248,36 @@
            </layout>
           </item>
           <item row="2" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_camera_up">
+            <item>
+             <widget class="QLabel" name="label_camera_up">
+              <property name="text">
+               <string>Up Axis</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboBox_camera_up">
+              <item>
+               <property name="text">
+                <string>Y-Up</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Z-Up</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="3" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_14">
             <item>
-             <widget class="QLabel" name="label_camera_x">
+             <widget class="QLabel" name="label_camera_front_back_axis">
               <property name="text">
-               <string>x</string>
+               <string>z</string>
               </property>
              </widget>
             </item>
@@ -243,67 +310,12 @@
             </item>
            </layout>
           </item>
-          <item row="0" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QLabel" name="label_title_ani_2">
-              <property name="text">
-               <string>Camera</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Orientation::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
-          <item row="1" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_13">
-            <item>
-             <widget class="QLabel" name="label_camera_reset">
-              <property name="text">
-               <string>Position</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_camera_reset">
-              <property name="text">
-               <string>Reset</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_5">
-              <property name="orientation">
-               <enum>Qt::Orientation::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
-          <item row="3" column="0">
+          <item row="4" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_15">
             <item>
-             <widget class="QLabel" name="label_camera_y">
+             <widget class="QLabel" name="label_camera_left_right_axis">
               <property name="text">
-               <string>y</string>
+               <string>x</string>
               </property>
              </widget>
             </item>
@@ -336,71 +348,65 @@
             </item>
            </layout>
           </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QWidget" name="widget_grp_animation_3" native="true">
-         <layout class="QGridLayout" name="gridLayout_4">
-          <item row="1" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_7">
-            <item>
-             <widget class="QCheckBox" name="checkBox_display_axis">
-              <property name="text">
-               <string>Axis</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="2" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_7b">
-            <item>
-             <widget class="QCheckBox" name="checkBox_display_grid">
-              <property name="text">
-               <string>Grid</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
           <item row="5" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_9">
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
-             <widget class="QCheckBox" name="checkBox_display_fps">
+             <widget class="QLabel" name="label_camera_top_bottom_axis">
               <property name="text">
-               <string>FPS</string>
+               <string>y</string>
               </property>
              </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_camera_top">
+              <property name="text">
+               <string>Top</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_camera_btm">
+              <property name="text">
+               <string>Bottom</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_9">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </item>
           <item row="6" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_6">
+           <layout class="QHBoxLayout" name="horizontalLayout_camera_projection">
             <item>
-             <widget class="QCheckBox" name="checkBox_display_metadata">
+             <widget class="QCheckBox" name="checkBox_camera_orthographic">
               <property name="text">
-               <string>Metadata</string>
+               <string>Orthographic</string>
               </property>
              </widget>
             </item>
            </layout>
           </item>
-          <item row="3" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_8">
-            <item>
-             <widget class="QCheckBox" name="checkBox_display_edge">
-              <property name="text">
-               <string>Edge</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="widget_grp_display" native="true">
+         <layout class="QGridLayout" name="gridLayout_4">
           <item row="0" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_5">
             <item>
-             <widget class="QLabel" name="label_title_ani_3">
+             <widget class="QLabel" name="label_title_display">
               <property name="text">
                <string>Display</string>
               </property>
@@ -421,6 +427,45 @@
             </item>
            </layout>
           </item>
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QCheckBox" name="checkBox_display_axis">
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+              <property name="text">
+               <string>Axis</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_7b">
+            <item>
+             <widget class="QCheckBox" name="checkBox_display_grid">
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+              <property name="text">
+               <string>Grid</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="3" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_8">
+            <item>
+             <widget class="QCheckBox" name="checkBox_display_edge">
+              <property name="text">
+               <string>Edge</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
           <item row="4" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_10">
             <item>
@@ -432,11 +477,200 @@
             </item>
            </layout>
           </item>
+          <item row="5" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_display_scalar_bar">
+            <item>
+             <widget class="QCheckBox" name="checkBox_display_scalar_bar">
+              <property name="text">
+               <string>Scalar Bar</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="6" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_9">
+            <item>
+             <widget class="QCheckBox" name="checkBox_display_fps">
+              <property name="text">
+               <string>FPS</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="7" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <item>
+             <widget class="QCheckBox" name="checkBox_display_metadata">
+              <property name="text">
+               <string>Metadata</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
        <item>
-       <widget class="QWidget" name="widget_grp_animation_4" native="true">
+        <widget class="QWidget" name="widget_grp_render" native="true">
+         <layout class="QGridLayout" name="gridLayout_render">
+          <item row="0" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_render_title">
+            <item>
+             <widget class="QLabel" name="label_title_render">
+              <property name="text">
+               <string>Render</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_render">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+             </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_render_reset">
+              <property name="text">
+               <string>Reset</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_render_aa">
+            <item>
+             <widget class="QCheckBox" name="checkBox_render_anti_aliasing">
+              <property name="text">
+               <string>Anti-Aliasing</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_render_ao">
+            <item>
+             <widget class="QCheckBox" name="checkBox_render_ambient_occlusion">
+              <property name="text">
+               <string>Ambient Occlusion</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="3" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_render_tonemap">
+            <item>
+             <widget class="QCheckBox" name="checkBox_render_tone_mapping">
+              <property name="text">
+               <string>Tone Mapping</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="4" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_render_translucency">
+            <item>
+             <widget class="QCheckBox" name="checkBox_render_translucency">
+              <property name="text">
+               <string>Translucency Support</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="5" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_render_opacity">
+            <item>
+             <widget class="QLabel" name="label_render_opacity">
+              <property name="text">
+               <string>Opacity</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSlider" name="slider_render_opacity">
+              <property name="maximum">
+               <number>100</number>
+              </property>
+              <property name="value">
+               <number>100</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_render_opacity_val">
+              <property name="text">
+               <string>100%</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="6" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_render_ambient">
+            <item>
+             <widget class="QCheckBox" name="checkBox_render_hdri_ambient">
+              <property name="text">
+               <string>Ambient Lighting</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="7" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_render_skybox">
+            <item>
+             <widget class="QCheckBox" name="checkBox_render_skybox">
+              <property name="text">
+               <string>Skybox Background</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="8" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_render_volume">
+            <item>
+             <widget class="QCheckBox" name="checkBox_render_volume">
+              <property name="text">
+               <string>Volume Rendering</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="9" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_render_blur">
+            <item>
+             <widget class="QCheckBox" name="checkBox_render_background_blur">
+              <property name="text">
+               <string>Background Blur</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="widget_grp_keys" native="true">
          <layout class="QGridLayout" name="gridLayout_5">
           <item row="0" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_keys_header">
@@ -454,9 +688,9 @@
              <spacer name="horizontalSpacer_keys_header">
               <property name="orientation">
                <enum>Qt::Orientation::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
                 <width>20</width>
                 <height>20</height>
                </size>

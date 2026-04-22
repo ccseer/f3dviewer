@@ -126,6 +126,7 @@ F3DWidget::F3DWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
     qprintt << this;
     setFocusPolicy(Qt::StrongFocus);
+    connect(&m_animation.timer, &QTimer::timeout, this, &F3DWidget::onAnimTick);
 #ifdef F3DVIEWER_HAS_F3D_LOG
     initF3DLogging();
 #endif
@@ -173,8 +174,9 @@ void F3DWidget::initializeGL()
             catch (...) {
             }
         };
-        opt.render.grid.enable = true;
-        opt.ui.axis            = true;
+        opt.render.grid.enable  = true;
+        opt.ui.axis             = true;
+        opt.model.color.opacity = 1.0;
         setUiOpt("scene.animation.indices", "-1");
         setUiOpt("ui.drop_zone.enable", "0");
         setUiOpt("ui.drop_zone.show_logo", "0");
@@ -212,26 +214,9 @@ void F3DWidget::loadModelInBackground()
 
     QTimer::singleShot(0, this, [this]() {
         try {
-            m_engine->getScene().add(toFsPath(m_path));
-
-            // initial state
-            auto &cam = m_engine->getWindow().getCamera();
-            cam.resetToBounds(0.7);
-            cam.azimuth(45);
-            cam.elevation(30);
-            cam.setCurrentAsDefault();
-
-            if (m_engine->getScene().animationTimeRange().second != 0.) {
-                // 60 fps
-                m_animation.timer.setInterval(16);
-                connect(&m_animation.timer, &QTimer::timeout, this,
-                        &F3DWidget::onAnimTick);
-                m_animation.timer.start();
-                m_animation.elapsed.start();
-            }
-            else {
-                // no animation
-                m_animation.playing = false;
+            if (!addSceneContent()) {
+                m_loading = false;
+                return;
             }
 
             m_loading = false;
@@ -249,24 +234,9 @@ void F3DWidget::loadModelInBackground()
                     try {
                         m_path = normalizeLoadPath(m_load_alias_path);
                         qprintt << "Retry loading via alias:" << m_path;
-                        m_engine->getScene().add(toFsPath(m_path));
-
-                        auto &cam = m_engine->getWindow().getCamera();
-                        cam.resetToBounds(0.7);
-                        cam.azimuth(45);
-                        cam.elevation(30);
-                        cam.setCurrentAsDefault();
-
-                        if (m_engine->getScene().animationTimeRange().second
-                            != 0.) {
-                            m_animation.timer.setInterval(16);
-                            connect(&m_animation.timer, &QTimer::timeout, this,
-                                    &F3DWidget::onAnimTick);
-                            m_animation.timer.start();
-                            m_animation.elapsed.start();
-                        }
-                        else {
-                            m_animation.playing = false;
+                        if (!addSceneContent()) {
+                            m_loading = false;
+                            return;
                         }
 
                         m_loading = false;
@@ -294,6 +264,102 @@ void F3DWidget::loadModelInBackground()
             m_loading = false;
         }
     });
+}
+
+bool F3DWidget::addSceneContent()
+{
+    if (!m_engine) {
+        return false;
+    }
+
+    auto &scene = m_engine->getScene();
+    scene.add(toFsPath(m_path));
+    setupDefaultCamera();
+
+    m_animation.timer.stop();
+    m_animation.pos       = 0.0;
+    const double duration = scene.animationTimeRange().second;
+    if (duration > 0.0) {
+        m_animation.timer.setInterval(16);
+        if (m_animation.playing) {
+            m_animation.timer.start();
+            m_animation.elapsed.start();
+        }
+        scene.loadAnimationTime(m_animation.pos);
+    }
+    else {
+        m_animation.playing = false;
+    }
+    return true;
+}
+
+void F3DWidget::setupDefaultCamera()
+{
+    auto &cam = m_engine->getWindow().getCamera();
+    cam.resetToBounds(0.7);
+    cam.azimuth(45);
+    cam.elevation(isYUp() ? 30 : 15);
+    cam.setCurrentAsDefault();
+}
+
+QVector3D F3DWidget::cameraDirection(CameraPos cp) const
+{
+    if (isYUp()) {
+        switch (cp) {
+        case CP_Front:
+            return {0, 0, -1};
+        case CP_Back:
+            return {0, 0, 1};
+        case CP_Left:
+            return {-1, 0, 0};
+        case CP_Right:
+            return {1, 0, 0};
+        case CP_Top:
+            return {0, 1, 0};
+        case CP_Bottom:
+            return {0, -1, 0};
+        default:
+            return {0, 0, -1};
+        }
+    }
+
+    switch (cp) {
+    case CP_Front:
+        return {0, -1, 0};
+    case CP_Back:
+        return {0, 1, 0};
+    case CP_Left:
+        return {-1, 0, 0};
+    case CP_Right:
+        return {1, 0, 0};
+    case CP_Top:
+        return {0, 0, 1};
+    case CP_Bottom:
+        return {0, 0, -1};
+    default:
+        return {0, -1, 0};
+    }
+}
+
+QVector3D F3DWidget::cameraUpVector(CameraPos cp) const
+{
+    if (isYUp()) {
+        if (cp == CP_Top) {
+            return {0, 0, 1};
+        }
+        if (cp == CP_Bottom) {
+            return {0, 0, -1};
+        }
+        return {0, 1, 0};
+    }
+
+    if (cp == CP_Top) {
+        return {0, 1, 0};
+    }
+    if (cp == CP_Bottom) {
+        return {0, -1, 0};
+    }
+    return {0, 0, 1};
 }
 
 void F3DWidget::resizeGL(int w, int h)
@@ -464,7 +530,7 @@ void F3DWidget::handleKey(QKeyEvent *event)
         }
         case Qt::Key_P: {
             if (ctrl) {
-                double opacity          = opt.model.color.opacity.value_or(0.0);
+                double opacity          = opt.model.color.opacity.value_or(1.0);
                 opacity                 = qMin(opacity + 0.1, 1.0);
                 opt.model.color.opacity = opacity;
             }
@@ -585,25 +651,14 @@ void F3DWidget::moveCamera(CameraPos cp)
         m_engine->getWindow().getCamera().resetToDefault();
         return;
     }
-    auto &cam        = m_engine->getWindow().getCamera();
-    const auto focal = cam.getFocalPoint();
-    const auto pos   = cam.getPosition();
-    double dist      = std::sqrt(std::pow(focal[0] - pos[0], 2)
-                                 + std::pow(focal[1] - pos[1], 2)
-                                 + std::pow(focal[2] - pos[2], 2));
-    const QHash<int, QVector3D> directions{
-        {CP_Front, QVector3D(0, 0, -1)}, {CP_Back, QVector3D(0, 0, 1)},
-        {CP_Left, QVector3D(-1, 0, 0)},  {CP_Right, QVector3D(1, 0, 0)},
-        {CP_Top, QVector3D(0, 1, 0)},    {CP_Bottom, QVector3D(0, -1, 0)},
-    };
-    QVector3D up(0, 1, 0);
-    const QVector3D direction = directions[cp];
-    if (cp == CP_Top) {
-        up = QVector3D(0, 0, 1);
-    }
-    else if (cp == CP_Bottom) {
-        up = QVector3D(0, 0, -1);
-    }
+    auto &cam                 = m_engine->getWindow().getCamera();
+    const auto focal          = cam.getFocalPoint();
+    const auto pos            = cam.getPosition();
+    double dist               = std::sqrt(std::pow(focal[0] - pos[0], 2)
+                                          + std::pow(focal[1] - pos[1], 2)
+                                          + std::pow(focal[2] - pos[2], 2));
+    const QVector3D direction = cameraDirection(cp);
+    const QVector3D up        = cameraUpVector(cp);
     auto target = QVector3D(focal[0], focal[1], focal[2]) - direction * dist;
     moveCameraTo(target, QVector3D(focal[0], focal[1], focal[2]), up);
 }
@@ -653,9 +708,16 @@ void F3DWidget::onAnimTick()
     }
     m_animation.pos
         += (m_animation.elapsed.restart() * 1. / 1000. * m_animation.speed);
-    auto max = m_engine->getScene().animationTimeRange().second;
-    if (max > 0.0) {
+    const auto max = m_engine->getScene().animationTimeRange().second;
+    if (max <= 0.0) {
+        return;
+    }
+    if (m_animation.loop) {
         m_animation.pos = std::fmod(m_animation.pos, max);
+    }
+    else if (m_animation.pos >= max) {
+        m_animation.pos = max;
+        setAnimationState(false);
     }
     m_engine->getScene().loadAnimationTime(m_animation.pos);
     emit sigAnimationProgressChanged(m_animation.pos, max);
@@ -735,6 +797,16 @@ double F3DWidget::getAnimationSpeed() const
     return m_animation.speed;
 }
 
+void F3DWidget::setAnimationLoop(bool loop)
+{
+    m_animation.loop = loop;
+}
+
+bool F3DWidget::isAnimationLoopEnabled() const
+{
+    return m_animation.loop;
+}
+
 double F3DWidget::getAnimationPosition() const
 {
     return m_animation.pos;
@@ -746,6 +818,108 @@ double F3DWidget::getAnimationDuration() const
         return 0.0;
     }
     return m_engine->getScene().animationTimeRange().second;
+}
+
+void F3DWidget::seekAnimation(double time)
+{
+    if (!m_engine || !hasAnimation()) {
+        return;
+    }
+    const double duration = getAnimationDuration();
+    m_animation.pos       = qBound(0.0, time, duration);
+    m_engine->getScene().loadAnimationTime(m_animation.pos);
+    emit sigAnimationProgressChanged(m_animation.pos, duration);
+    update();
+}
+
+QStringList F3DWidget::getAnimationNames() const
+{
+    if (!m_engine) {
+        return {};
+    }
+
+    QStringList names;
+    for (const auto &name : m_engine->getScene().getAnimationNames()) {
+        names << QString::fromStdString(name);
+    }
+    return names;
+}
+
+int F3DWidget::getAnimationSelection() const
+{
+    return m_animation.selection;
+}
+
+bool F3DWidget::setAnimationSelection(int index)
+{
+    if (!m_engine || m_loading || index == m_animation.selection) {
+        return false;
+    }
+
+    try {
+        m_loading             = true;
+        m_animation.selection = index;
+        m_engine->getOptions().setAsString(
+            "scene.animation.indices",
+            index < 0 ? "-1" : std::to_string(index));
+        m_engine->getScene().clear();
+        const bool wasPlaying = m_animation.playing;
+        m_animation.playing   = wasPlaying;
+        const bool ok         = addSceneContent();
+        m_loading             = false;
+        if (ok) {
+            emit sigAnimationStateChanged(m_animation.playing);
+            emit sigAnimationProgressChanged(m_animation.pos,
+                                             getAnimationDuration());
+            update();
+        }
+        return ok;
+    }
+    catch (const std::exception &e) {
+        qprintt << "Error changing animation selection:" << e.what();
+    }
+    catch (...) {
+        qprintt << "Error changing animation selection";
+    }
+    m_loading = false;
+    return false;
+}
+
+bool F3DWidget::isYUp() const
+{
+    return m_y_up;
+}
+
+bool F3DWidget::setYUp(bool yUp)
+{
+    if (!m_engine || m_loading || isYUp() == yUp) {
+        return false;
+    }
+
+    try {
+        m_loading = true;
+        m_y_up    = yUp;
+        m_engine->getOptions().setAsString("scene.up_direction",
+                                           yUp ? "+Y" : "+Z");
+        m_engine->getScene().clear();
+        const bool ok = addSceneContent();
+        m_loading     = false;
+        if (ok) {
+            emit sigAnimationStateChanged(m_animation.playing);
+            emit sigAnimationProgressChanged(m_animation.pos,
+                                             getAnimationDuration());
+            update();
+        }
+        return ok;
+    }
+    catch (const std::exception &e) {
+        qprintt << "Error changing up direction:" << e.what();
+    }
+    catch (...) {
+        qprintt << "Error changing up direction";
+    }
+    m_loading = false;
+    return false;
 }
 
 void F3DWidget::setUIScale(double scale)

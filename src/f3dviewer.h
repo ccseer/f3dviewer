@@ -31,14 +31,17 @@ private:
     void initSidebar();
     void syncSidebar();
     void saveIni();
+    void saveDisplayIni();
     void setSidebarVisible(bool visible);
+    void resetViewOptions();
     QString getIniPath() const;
 
-    QSettings *m_ini      = nullptr;
-    QToolButton *m_btn    = nullptr;
-    SidebarWnd *m_sidebar = nullptr;
-    F3DWidget *m_view     = nullptr;
+    QSettings *m_ini            = nullptr;
+    QToolButton *m_btn          = nullptr;
+    SidebarWnd *m_sidebar       = nullptr;
+    F3DWidget *m_view           = nullptr;
     bool m_sidebar_visible_pref = true;
+    bool m_options_ready        = false;
 };
 
 class F3DPlugin : public QObject, public ViewerPluginInterface {

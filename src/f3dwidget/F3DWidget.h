@@ -3,6 +3,7 @@
 #include <QElapsedTimer>
 #include <QOpenGLWidget>
 #include <QString>
+#include <QStringList>
 #include <QTimer>
 #include <QVector3D>
 
@@ -28,8 +29,16 @@ public:
     bool isAxisVisible() const;
     void setAnimationSpeed(double speed);
     double getAnimationSpeed() const;
+    void setAnimationLoop(bool loop);
+    bool isAnimationLoopEnabled() const;
     double getAnimationPosition() const;
     double getAnimationDuration() const;
+    void seekAnimation(double time);
+    QStringList getAnimationNames() const;
+    int getAnimationSelection() const;
+    bool setAnimationSelection(int index);
+    bool isYUp() const;
+    bool setYUp(bool yUp);
 
     void setUIScale(double scale);
 
@@ -67,6 +76,10 @@ private:
                       const QVector3D &focal,
                       const QVector3D &up);
     void onAnimTick();
+    bool addSceneContent();
+    void setupDefaultCamera();
+    QVector3D cameraDirection(CameraPos cp) const;
+    QVector3D cameraUpVector(CameraPos cp) const;
     void loadModelInBackground();
 
     struct {
@@ -74,8 +87,10 @@ private:
         QTimer timer;
         double speed = 1.;
         // for loadAnimationTime
-        double pos   = 0;
-        bool playing = true;
+        double pos    = 0;
+        bool playing  = true;
+        bool loop     = true;
+        int selection = -1;
     } m_animation;
 
     std::unique_ptr<f3d::engine> m_engine;
@@ -83,6 +98,7 @@ private:
     QString m_path;
     QString m_load_alias_path;
     bool m_loading = false;
+    bool m_y_up    = true;
 
     QPointF m_pos;
 };

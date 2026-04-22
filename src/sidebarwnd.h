@@ -26,19 +26,24 @@ public:
     Q_SIGNAL void sigCameraTop();
     Q_SIGNAL void sigCameraBottom();
 
+    Q_SIGNAL void sigShowAxis(bool);
     Q_SIGNAL void sigShowGrid(bool);
     Q_SIGNAL void sigShowEdge(bool);
     Q_SIGNAL void sigShowPointSprites(bool);
     Q_SIGNAL void sigShowMetadata(bool);
     Q_SIGNAL void sigShowFPS(bool);
+    Q_SIGNAL void sigAnimationSpeedChanged(double speed);
 
-    void syncControls(bool grid,
+    void syncControls(bool axis,
+                      bool grid,
                       bool edge,
                       bool ps,
                       bool meta,
                       bool fps,
                       bool ani_show_grp,
-                      bool ani_running);
+                      bool ani_running,
+                      double ani_speed);
+    void updateAnimationProgress(double current, double duration);
 
 private:
     Q_SLOT void on_pushButton_ani_play_clicked();

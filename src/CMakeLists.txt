@@ -17,7 +17,7 @@ if(MSVC)
     )
 endif()
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGLWidgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGLWidgets Svg)
 
 include(FetchContent)
 FetchContent_Declare(SeerSdk
@@ -50,6 +50,7 @@ target_link_libraries(f3dviewer PRIVATE
     Qt6::Gui
     Qt6::Widgets
     Qt6::OpenGLWidgets
+    Qt6::Svg
     f3d::libf3d
 )
 

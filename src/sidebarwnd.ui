@@ -84,6 +84,83 @@
             </item>
            </layout>
           </item>
+          <item row="2" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_ani_progress">
+            <item>
+             <widget class="QLabel" name="label_ani_progress">
+              <property name="text">
+               <string>Progress</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSlider" name="slider_ani_progress">
+              <property name="maximum">
+               <number>1000</number>
+              </property>
+              <property name="value">
+               <number>0</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_ani_progress_val">
+              <property name="text">
+               <string>0.0 / 0.0</string>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>56</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="3" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_ani_speed">
+            <item>
+             <widget class="QLabel" name="label_ani_speed">
+              <property name="text">
+               <string>Speed</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSlider" name="slider_ani_speed">
+              <property name="minimum">
+               <number>10</number>
+              </property>
+              <property name="maximum">
+               <number>400</number>
+              </property>
+              <property name="value">
+               <number>100</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_ani_speed_val">
+              <property name="text">
+               <string>1.0x</string>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>40</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
          </layout>
         </widget>
        </item>
@@ -268,6 +345,17 @@
           <item row="1" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_7">
             <item>
+             <widget class="QCheckBox" name="checkBox_display_axis">
+              <property name="text">
+               <string>Axis</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_7b">
+            <item>
              <widget class="QCheckBox" name="checkBox_display_grid">
               <property name="text">
                <string>Grid</string>
@@ -298,7 +386,7 @@
             </item>
            </layout>
           </item>
-          <item row="2" column="0">
+          <item row="3" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_8">
             <item>
              <widget class="QCheckBox" name="checkBox_display_edge">
@@ -333,7 +421,7 @@
             </item>
            </layout>
           </item>
-          <item row="3" column="0">
+          <item row="4" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_10">
             <item>
              <widget class="QCheckBox" name="checkBox_display_ponit_sprites">

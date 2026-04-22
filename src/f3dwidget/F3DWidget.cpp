@@ -1,13 +1,23 @@
 #include "F3DWidget.h"
 
 #include <f3d/engine.h>
+
+#include <filesystem>
+#if __has_include(<f3d/log.h>)
+#include <f3d/log.h>
+#define F3DVIEWER_HAS_F3D_LOG 1
+#endif
 #include <f3d/options.h>
 #include <f3d/scene.h>
 #include <f3d/window.h>
+#include <windows.h>
 
 #include <QApplication>
 #include <QClipboard>
 #include <QDebug>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
 #include <QMouseEvent>
 #include <QOpenGLContext>
 #include <QQuaternion>
@@ -20,11 +30,106 @@ namespace {
 constexpr auto g_shift_delta   = 0.1f;
 constexpr float g_zoom_factor  = 0.001f;
 constexpr float g_rotate_speed = 0.5f;
+
+#ifdef F3DVIEWER_HAS_F3D_LOG
+void initF3DLogging()
+{
+    static bool initialized = false;
+    if (initialized) {
+        return;
+    }
+    initialized = true;
+
+    f3d::log::setUseColoring(false);
+    f3d::log::forward(
+        [](f3d::log::VerboseLevel level, const std::string &message) {
+            const QString msg = QString::fromStdString(message).trimmed();
+            if (msg.isEmpty()) {
+                return;
+            }
+            switch (level) {
+            case f3d::log::VerboseLevel::DEBUG:
+                // qDebug() << "[F3D] [debug]" << msg;
+                break;
+            case f3d::log::VerboseLevel::INFO:
+                // qInfo() << "[F3D] [info]" << msg;
+                break;
+            case f3d::log::VerboseLevel::WARN:
+                qWarning() << "[F3D] [warn]" << msg;
+                break;
+            case f3d::log::VerboseLevel::QUIET:
+                break;
+            default:
+                // case f3d::log::VerboseLevel::ERROR: //compile error
+                qCritical() << "[F3D] [error]" << msg;
+            }
+        });
+    f3d::log::setVerboseLevel(f3d::log::VerboseLevel::QUIET, true);
+}
+#endif
+
+std::filesystem::path toFsPath(const QString &path)
+{
+    return std::filesystem::u8path(path.toUtf8().toStdString());
+}
+
+QString normalizeLoadPath(const QString &path)
+{
+    const QString native
+        = QDir::toNativeSeparators(QFileInfo(path).absoluteFilePath());
+    std::wstring wide = native.toStdWString();
+    std::wstring shortPath(MAX_PATH, L'\0');
+    const DWORD len = GetShortPathNameW(wide.c_str(), shortPath.data(),
+                                        static_cast<DWORD>(shortPath.size()));
+    if (len > 0) {
+        shortPath.resize(len);
+        return QDir::fromNativeSeparators(QString::fromStdWString(shortPath));
+    }
+    return QFileInfo(path).absoluteFilePath();
+}
+
+bool hasNonAscii(const QString &path)
+{
+    for (const QChar ch : path) {
+        if (ch.unicode() > 127) {
+            return true;
+        }
+    }
+    return false;
+}
+
+QString createAsciiSiblingAlias(const QString &path)
+{
+    QFileInfo info(path);
+    const QString dir    = info.absolutePath();
+    const QString ext    = info.completeSuffix();
+    const QString dotExt = ext.isEmpty() ? QString() : "." + ext;
+    const QString src    = QDir::toNativeSeparators(info.absoluteFilePath());
+
+    for (int i = 0; i < 64; ++i) {
+        const QString aliasName
+            = QString("seer_f3d_%1%2").arg(i, 2, 10, QChar('0')).arg(dotExt);
+        const QString aliasPath = QDir(dir).filePath(aliasName);
+        if (QFileInfo::exists(aliasPath)) {
+            continue;
+        }
+        if (CreateHardLinkW(reinterpret_cast<LPCWSTR>(
+                                QDir::toNativeSeparators(aliasPath).utf16()),
+                            reinterpret_cast<LPCWSTR>(src.utf16()), nullptr)) {
+            return aliasPath;
+        }
+    }
+    return {};
+}
 }  // namespace
 
 F3DWidget::F3DWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
     qprintt << this;
+    setFocusPolicy(Qt::StrongFocus);
+#ifdef F3DVIEWER_HAS_F3D_LOG
+    initF3DLogging();
+#endif
     qprintt << "f3d version" << f3d::engine::getLibInfo().VersionFull;
 }
 
@@ -33,12 +138,16 @@ F3DWidget::~F3DWidget()
     makeCurrent();
     m_engine.reset();
     doneCurrent();
+    if (!m_load_alias_path.isEmpty()) {
+        QFile::remove(m_load_alias_path);
+    }
     qprintt << "~" << this;
 }
 
 bool F3DWidget::load(const QString &path)
 {
-    m_path = path;
+    m_original_path = QFileInfo(path).absoluteFilePath();
+    m_path          = normalizeLoadPath(m_original_path);
     return true;
 }
 
@@ -57,32 +166,32 @@ void F3DWidget::initializeGL()
             f3d::engine::createExternal([this](const char *name) {
                 return context()->getProcAddress(name);
             }));
-        auto &opt                 = m_engine->getOptions();
-        opt.render.grid.enable    = true;
-        opt.scene.animation.index = -1;
+        auto &opt     = m_engine->getOptions();
+        auto setUiOpt = [&opt](const char *key, const char *value) {
+            try {
+                opt.setAsString(key, value);
+            }
+            catch (...) {
+            }
+        };
+        opt.render.grid.enable = true;
+        opt.ui.axis            = true;
+        setUiOpt("scene.animation.indices", "-1");
+        setUiOpt("ui.drop_zone.enable", "0");
+        setUiOpt("ui.drop_zone.show_logo", "0");
+        setUiOpt("ui.notifications.enable", "0");
+        setUiOpt("ui.notifications.show_bindings", "0");
+        setUiOpt("ui.cheatsheet", "0");
+        setUiOpt("ui.console", "0");
+        setUiOpt("ui.minimal_console", "0");
+        setUiOpt("ui.filename", "0");
+        setUiOpt("ui.animation_progress", "0");
+        setUiOpt("ui.loader_progress", "0");
 
         m_engine->getWindow().setSize(width(), height());
-        m_engine->getScene().add(m_path.toStdString());
 
-        // initial state
-        auto &cam = m_engine->getWindow().getCamera();
-        cam.resetToBounds(0.7);
-        cam.azimuth(45);
-        cam.elevation(30);
-        cam.setCurrentAsDefault();
-
-        if (m_engine->getScene().animationTimeRange().second != 0.) {
-            // 60 fps
-            m_animation.timer.setInterval(16);
-            connect(&m_animation.timer, &QTimer::timeout, this,
-                    &F3DWidget::onAnimTick);
-            m_animation.timer.start();
-            m_animation.elapsed.start();
-        }
-        else {
-            // no animation
-            m_animation.playing = false;
-        }
+        // Load model in background thread
+        loadModelInBackground();
 
         connect(this, &QOpenGLWidget::frameSwapped, this,
                 [this]() { update(); });
@@ -93,6 +202,99 @@ void F3DWidget::initializeGL()
     catch (...) {
         qprintt << "Error initializing F3D engine";
     }
+}
+
+void F3DWidget::loadModelInBackground()
+{
+    if (m_loading) {
+        return;
+    }
+    m_loading = true;
+
+    QTimer::singleShot(0, this, [this]() {
+        try {
+            m_engine->getScene().add(toFsPath(m_path));
+
+            // initial state
+            auto &cam = m_engine->getWindow().getCamera();
+            cam.resetToBounds(0.7);
+            cam.azimuth(45);
+            cam.elevation(30);
+            cam.setCurrentAsDefault();
+
+            if (m_engine->getScene().animationTimeRange().second != 0.) {
+                // 60 fps
+                m_animation.timer.setInterval(16);
+                connect(&m_animation.timer, &QTimer::timeout, this,
+                        &F3DWidget::onAnimTick);
+                m_animation.timer.start();
+                m_animation.elapsed.start();
+            }
+            else {
+                // no animation
+                m_animation.playing = false;
+            }
+
+            m_loading = false;
+            emit sigLoaded();
+            emit sigAnimationStateChanged(m_animation.playing);
+            emit sigAnimationProgressChanged(m_animation.pos,
+                                             getAnimationDuration());
+            update();
+        }
+        catch (const std::exception &e) {
+            qprintt << "Error loading model:" << e.what() << "path:" << m_path;
+            if (m_load_alias_path.isEmpty() && hasNonAscii(m_original_path)) {
+                m_load_alias_path = createAsciiSiblingAlias(m_original_path);
+                if (!m_load_alias_path.isEmpty()) {
+                    try {
+                        m_path = normalizeLoadPath(m_load_alias_path);
+                        qprintt << "Retry loading via alias:" << m_path;
+                        m_engine->getScene().add(toFsPath(m_path));
+
+                        auto &cam = m_engine->getWindow().getCamera();
+                        cam.resetToBounds(0.7);
+                        cam.azimuth(45);
+                        cam.elevation(30);
+                        cam.setCurrentAsDefault();
+
+                        if (m_engine->getScene().animationTimeRange().second
+                            != 0.) {
+                            m_animation.timer.setInterval(16);
+                            connect(&m_animation.timer, &QTimer::timeout, this,
+                                    &F3DWidget::onAnimTick);
+                            m_animation.timer.start();
+                            m_animation.elapsed.start();
+                        }
+                        else {
+                            m_animation.playing = false;
+                        }
+
+                        m_loading = false;
+                        emit sigLoaded();
+                        emit sigAnimationStateChanged(m_animation.playing);
+                        emit sigAnimationProgressChanged(
+                            m_animation.pos, getAnimationDuration());
+                        update();
+                        return;
+                    }
+                    catch (const std::exception &retry) {
+                        qprintt << "Retry loading model failed:" << retry.what()
+                                << "alias:" << m_path;
+                    }
+                    catch (...) {
+                        qprintt << "Retry loading model failed"
+                                << "alias:" << m_path;
+                    }
+                }
+            }
+            m_loading = false;
+        }
+        catch (...) {
+            qprintt << "Error loading model";
+            m_loading = false;
+        }
+    });
 }
 
 void F3DWidget::resizeGL(int w, int h)
@@ -264,12 +466,12 @@ void F3DWidget::handleKey(QKeyEvent *event)
         case Qt::Key_P: {
             if (ctrl) {
                 double opacity          = opt.model.color.opacity.value_or(0.0);
-                opacity                 = std::min(opacity + 0.1, 1.0);
+                opacity                 = qMin(opacity + 0.1, 1.0);
                 opt.model.color.opacity = opacity;
             }
             else if (shift) {
                 double opacity          = opt.model.color.opacity.value_or(1.0);
-                opacity                 = std::max(opacity - 0.1, 0.1);
+                opacity                 = qMax(opacity - 0.1, 0.1);
                 opt.model.color.opacity = opacity;
             }
             else {
@@ -457,6 +659,7 @@ void F3DWidget::onAnimTick()
         m_animation.pos = std::fmod(m_animation.pos, max);
     }
     m_engine->getScene().loadAnimationTime(m_animation.pos);
+    emit sigAnimationProgressChanged(m_animation.pos, max);
 }
 
 void F3DWidget::setOption(const QString &key, const QString &v)
@@ -489,6 +692,11 @@ QVariant F3DWidget::getOption(const QString &key) const
     return ret;
 }
 
+bool F3DWidget::isAxisVisible() const
+{
+    return getOption("ui.axis").toBool();
+}
+
 bool F3DWidget::hasAnimation() const
 {
     return m_engine && m_engine->getScene().animationTimeRange().second > 0.;
@@ -507,6 +715,7 @@ void F3DWidget::setAnimationState(bool play)
     else {
         m_animation.timer.stop();
     }
+    emit sigAnimationStateChanged(m_animation.playing);
 }
 
 bool F3DWidget::isAnimationRunning() const
@@ -515,4 +724,78 @@ bool F3DWidget::isAnimationRunning() const
         return false;
     }
     return m_animation.playing;
+}
+
+void F3DWidget::setAnimationSpeed(double speed)
+{
+    m_animation.speed = speed;
+}
+
+double F3DWidget::getAnimationSpeed() const
+{
+    return m_animation.speed;
+}
+
+double F3DWidget::getAnimationPosition() const
+{
+    return m_animation.pos;
+}
+
+double F3DWidget::getAnimationDuration() const
+{
+    if (!m_engine) {
+        return 0.0;
+    }
+    return m_engine->getScene().animationTimeRange().second;
+}
+
+void F3DWidget::setUIScale(double scale)
+{
+    if (!m_engine) {
+        return;
+    }
+    try {
+        m_engine->getOptions().setAsString("ui.scale", std::to_string(scale));
+    }
+    catch (...) {
+        qprintt << "Error setting ui.scale" << scale;
+    }
+}
+
+void F3DWidget::applyOptions(const QStringList &args)
+{
+    if (!m_engine) {
+        return;
+    }
+    // Parse args like: "-g 1", "-e 0", "-m 0", "-f 0"
+    // -g: grid, -e: edges, -m: metadata, -f: fps
+    for (const auto &arg : args) {
+        auto parts = arg.split(' ', Qt::SkipEmptyParts);
+        if (parts.size() != 2) {
+            continue;
+        }
+        const auto &flag  = parts[0];
+        const auto &value = parts[1];
+        try {
+            if (flag == "-g") {
+                m_engine->getOptions().setAsString("render.grid.enable",
+                                                   value.toStdString());
+            }
+            else if (flag == "-e") {
+                m_engine->getOptions().setAsString("render.show_edges",
+                                                   value.toStdString());
+            }
+            else if (flag == "-m") {
+                m_engine->getOptions().setAsString("ui.metadata",
+                                                   value.toStdString());
+            }
+            else if (flag == "-f") {
+                m_engine->getOptions().setAsString("ui.fps",
+                                                   value.toStdString());
+            }
+        }
+        catch (...) {
+            qprintt << "Error applying option" << arg;
+        }
+    }
 }

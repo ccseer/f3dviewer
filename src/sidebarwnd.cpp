@@ -1,6 +1,7 @@
 #include "sidebarwnd.h"
 
 #include <QScrollBar>
+#include <QSignalBlocker>
 
 #include "ui_sidebarwnd.h"
 
@@ -16,6 +17,14 @@ SidebarWnd::SidebarWnd(QWidget *parent)
 
     updateAnimationPlayBtnText();
     ui->pushButton_ani_reset->setVisible(false);
+    ui->slider_ani_progress->setVisible(false);
+    ui->label_ani_progress->setVisible(false);
+    ui->label_ani_progress_val->setVisible(false);
+    ui->slider_ani_speed->setVisible(false);
+    ui->label_ani_speed->setVisible(false);
+    ui->label_ani_speed_val->setVisible(false);
+    ui->slider_ani_progress->setEnabled(false);
+    ui->label_ani_progress_val->setText("0.0 / 0.0");
 
     initKeys();
 
@@ -34,6 +43,8 @@ SidebarWnd::SidebarWnd(QWidget *parent)
     connect(ui->pushButton_camera_btm, &QPushButton::clicked, this,
             &SidebarWnd::sigCameraBottom);
 
+    connect(ui->checkBox_display_axis, &QCheckBox::clicked, this,
+            &SidebarWnd::sigShowAxis);
     connect(ui->checkBox_display_grid, &QCheckBox::clicked, this,
             &SidebarWnd::sigShowGrid);
     connect(ui->checkBox_display_edge, &QCheckBox::clicked, this,
@@ -44,6 +55,14 @@ SidebarWnd::SidebarWnd(QWidget *parent)
             &SidebarWnd::sigShowFPS);
     connect(ui->checkBox_display_metadata, &QCheckBox::clicked, this,
             &SidebarWnd::sigShowMetadata);
+
+    connect(ui->slider_ani_speed, &QSlider::valueChanged, this,
+            [this](int value) {
+                double speed = value / 100.0;
+                ui->label_ani_speed_val->setText(
+                    QString("%1x").arg(speed, 0, 'f', 1));
+                emit sigAnimationSpeedChanged(speed);
+            });
 }
 
 SidebarWnd::~SidebarWnd()
@@ -77,16 +96,34 @@ void SidebarWnd::updateDPR(qreal r)
     for (auto i : findChildren<QPushButton *>()) {
         i->setFixedSize(w, h);
     }
+
+    const int ani_label_w
+        = qMax(ui->label_ani_progress->fontMetrics().horizontalAdvance(
+                   ui->label_ani_progress->text()),
+               ui->label_ani_speed->fontMetrics().horizontalAdvance(
+                   ui->label_ani_speed->text()));
+    ui->label_ani_progress->setFixedWidth(ani_label_w);
+    ui->label_ani_speed->setFixedWidth(ani_label_w);
+
+    const int ani_value_w = qMax(
+        ui->label_ani_progress_val->fontMetrics().horizontalAdvance(
+            "99.9 / 99.9"),
+        ui->label_ani_speed_val->fontMetrics().horizontalAdvance("999.9x"));
+    ui->label_ani_progress_val->setFixedWidth(ani_value_w);
+    ui->label_ani_speed_val->setFixedWidth(ani_value_w);
 }
 
-void SidebarWnd::syncControls(bool grid,
+void SidebarWnd::syncControls(bool axis,
+                              bool grid,
                               bool edge,
                               bool ps,
                               bool meta,
                               bool fps,
                               bool ani_show_grp,
-                              bool ani_running)
+                              bool ani_running,
+                              double ani_speed)
 {
+    ui->checkBox_display_axis->setChecked(axis);
     ui->checkBox_display_grid->setChecked(grid);
     ui->checkBox_display_edge->setChecked(edge);
     ui->checkBox_display_ponit_sprites->setChecked(ps);
@@ -94,8 +131,32 @@ void SidebarWnd::syncControls(bool grid,
     ui->checkBox_display_fps->setChecked(fps);
 
     ui->widget_grp_animation->setVisible(ani_show_grp);
+    ui->slider_ani_progress->setVisible(ani_show_grp);
+    ui->label_ani_progress->setVisible(ani_show_grp);
+    ui->label_ani_progress_val->setVisible(ani_show_grp);
+    ui->slider_ani_speed->setVisible(ani_show_grp);
+    ui->label_ani_speed->setVisible(ani_show_grp);
+    ui->label_ani_speed_val->setVisible(ani_show_grp);
+    {
+        const QSignalBlocker blocker(ui->slider_ani_speed);
+        ui->slider_ani_speed->setValue(qRound(ani_speed * 100.0));
+    }
+    ui->label_ani_speed_val->setText(QString("%1x").arg(ani_speed, 0, 'f', 1));
     m_ani_run = ani_running;
     updateAnimationPlayBtnText();
+}
+
+void SidebarWnd::updateAnimationProgress(double current, double duration)
+{
+    const int max = qMax(1, qRound(duration * 1000.0));
+    const int val = qBound(0, qRound(current * 1000.0), max);
+    {
+        const QSignalBlocker blocker(ui->slider_ani_progress);
+        ui->slider_ani_progress->setRange(0, max);
+        ui->slider_ani_progress->setValue(val);
+    }
+    ui->label_ani_progress_val->setText(
+        QString("%1 / %2").arg(current, 0, 'f', 1).arg(duration, 0, 'f', 1));
 }
 
 void SidebarWnd::on_pushButton_ani_play_clicked()

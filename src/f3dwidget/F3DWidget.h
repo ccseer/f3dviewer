@@ -2,6 +2,7 @@
 
 #include <QElapsedTimer>
 #include <QOpenGLWidget>
+#include <QString>
 #include <QTimer>
 #include <QVector3D>
 
@@ -16,6 +17,7 @@ public:
     ~F3DWidget() override;
 
     bool load(const QString &path);
+    void applyOptions(const QStringList &args);
 
     void setOption(const QString &key, const QString &v);
     QVariant getOption(const QString &key) const;
@@ -23,6 +25,13 @@ public:
     bool hasAnimation() const;
     void setAnimationState(bool play);
     bool isAnimationRunning() const;
+    bool isAxisVisible() const;
+    void setAnimationSpeed(double speed);
+    double getAnimationSpeed() const;
+    double getAnimationPosition() const;
+    double getAnimationDuration() const;
+
+    void setUIScale(double scale);
 
     enum CameraPos {
         CP_Front   = Qt::Key_1,
@@ -34,6 +43,12 @@ public:
         CP_Default = Qt::Key_Return,
     };
     void moveCamera(CameraPos cp);
+
+Q_SIGNALS:
+    void sigTabPressed();
+    void sigLoaded();
+    void sigAnimationStateChanged(bool playing);
+    void sigAnimationProgressChanged(double current, double duration);
 
 protected:
     void initializeGL() override;
@@ -53,6 +68,7 @@ private:
                       const QVector3D &focal,
                       const QVector3D &up);
     void onAnimTick();
+    void loadModelInBackground();
 
     struct {
         QElapsedTimer elapsed;
@@ -64,7 +80,10 @@ private:
     } m_animation;
 
     std::unique_ptr<f3d::engine> m_engine;
+    QString m_original_path;
     QString m_path;
+    QString m_load_alias_path;
+    bool m_loading = false;
 
     QPointF m_pos;
 };

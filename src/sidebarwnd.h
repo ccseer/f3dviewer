@@ -51,6 +51,7 @@ private:
     void updateAnimationPlayBtnText();
 
     void initKeys();
+    void renderKeys(qreal dpr);
 
     bool m_ani_run = true;
 

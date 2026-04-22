@@ -16,7 +16,6 @@
 #include <QClipboard>
 #include <QDebug>
 #include <QDir>
-#include <QFile>
 #include <QFileInfo>
 #include <QMouseEvent>
 #include <QOpenGLContext>
@@ -24,7 +23,7 @@
 #include <QVariantAnimation>
 #include <QVector3D>
 
-#define qprintt qDebug() << "[F3DWidget]"
+#define qprintt qDebug() << "[F3DViewer]"
 
 namespace {
 constexpr auto g_shift_delta   = 0.1f;
@@ -55,13 +54,13 @@ void initF3DLogging()
                 // qInfo() << "[F3D] [info]" << msg;
                 break;
             case f3d::log::VerboseLevel::WARN:
-                qWarning() << "[F3D] [warn]" << msg;
+                qprintt << "[F3D] [warn]" << msg;
                 break;
             case f3d::log::VerboseLevel::QUIET:
                 break;
             default:
                 // case f3d::log::VerboseLevel::ERROR: //compile error
-                qCritical() << "[F3D] [error]" << msg;
+                qprintt << "[F3D] [error]" << msg;
             }
         });
     f3d::log::setVerboseLevel(f3d::log::VerboseLevel::QUIET, true);
@@ -767,35 +766,40 @@ void F3DWidget::applyOptions(const QStringList &args)
     if (!m_engine) {
         return;
     }
-    // Parse args like: "-g 1", "-e 0", "-m 0", "-f 0"
-    // -g: grid, -e: edges, -m: metadata, -f: fps
-    for (const auto &arg : args) {
-        auto parts = arg.split(' ', Qt::SkipEmptyParts);
-        if (parts.size() != 2) {
+    // Seer splits args by space into individual tokens: ["--key", "value"]
+    // Also handle single-string form: ["--key value"]
+    for (int i = 0; i < args.size(); ++i) {
+        QString key, value;
+        const QString &tok = args[i];
+        if (tok.startsWith("--")) {
+            if (tok.contains(' ')) {
+                auto parts = tok.split(' ', Qt::SkipEmptyParts);
+                if (parts.size() == 2) {
+                    key   = parts[0].mid(2);
+                    value = parts[1];
+                }
+            }
+            else if (i + 1 < args.size() && !args[i + 1].startsWith("--")) {
+                key   = tok.mid(2);
+                value = args[++i];
+            }
+        }
+        if (key.isEmpty() || value.isEmpty()) {
             continue;
         }
-        const auto &flag  = parts[0];
-        const auto &value = parts[1];
         try {
-            if (flag == "-g") {
-                m_engine->getOptions().setAsString("render.grid.enable",
-                                                   value.toStdString());
-            }
-            else if (flag == "-e") {
-                m_engine->getOptions().setAsString("render.show_edges",
-                                                   value.toStdString());
-            }
-            else if (flag == "-m") {
-                m_engine->getOptions().setAsString("ui.metadata",
-                                                   value.toStdString());
-            }
-            else if (flag == "-f") {
-                m_engine->getOptions().setAsString("ui.fps",
-                                                   value.toStdString());
-            }
+            // normalize "0"/"1" to "false"/"true" for boolean options
+            QString v = value;
+            if (v == "1")
+                v = "true";
+            else if (v == "0")
+                v = "false";
+            m_engine->getOptions().setAsString(key.toStdString(),
+                                               v.toStdString());
+            qprintt << "applyOptions:" << key << "=" << v;
         }
         catch (...) {
-            qprintt << "Error applying option" << arg;
+            qprintt << "Error applying option" << key << value;
         }
     }
 }

@@ -207,6 +207,11 @@ void F3DViewer::initSidebar()
         applyBool(g_ini_edge, "render.show_edges", false);
         applyBool(g_ini_metadata, "ui.metadata", false);
         applyBool(g_ini_fps, "ui.fps", false);
+        // plugin.json args override INI
+        auto cmd = options()->property(ViewOptionsKeys::kKeyPluginCmd).toStringList();
+        if (!cmd.isEmpty()) {
+            m_view->applyOptions(cmd);
+        }
         syncSidebar();
         QTimer::singleShot(
             0, this, [this]() { setSidebarVisible(m_sidebar_visible_pref); });

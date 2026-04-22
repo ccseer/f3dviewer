@@ -2,6 +2,8 @@
 
 #include <QScrollBar>
 #include <QSignalBlocker>
+#include <QTextDocument>
+#include <QToolButton>
 
 #include "ui_sidebarwnd.h"
 
@@ -25,8 +27,34 @@ SidebarWnd::SidebarWnd(QWidget *parent)
     ui->label_ani_speed_val->setVisible(false);
     ui->slider_ani_progress->setEnabled(false);
     ui->label_ani_progress_val->setText("0.0 / 0.0");
+    ui->widget_keys_content->setVisible(false);
+    ui->toolButton_keys_toggle->setAutoRaise(true);
+    ui->toolButton_keys_toggle->setStyleSheet(
+        "QToolButton {"
+        " color: palette(midlight);"
+        " font-size: 11px;"
+        " padding: 1px 6px;"
+        " border: 1px solid palette(mid);"
+        " border-radius: 8px;"
+        " background: transparent;"
+        " }"
+        "QToolButton:hover {"
+        " color: palette(text);"
+        " border-color: palette(midlight);"
+        " }"
+        "QToolButton:checked {"
+        " color: palette(text);"
+        " border-color: palette(buttontext);"
+        " }"
+        "QToolButton:pressed {"
+        " border: none;"
+        " padding: 1px 6px;"
+        " border: 1px solid palette(buttontext);"
+        " }");
+    ui->toolButton_keys_toggle->setText("Show");
 
     initKeys();
+    renderKeys(devicePixelRatioF());
 
     connect(ui->pushButton_camera_reset, &QPushButton::clicked, this,
             &SidebarWnd::sigCameraReset);
@@ -62,6 +90,11 @@ SidebarWnd::SidebarWnd(QWidget *parent)
                 ui->label_ani_speed_val->setText(
                     QString("%1x").arg(speed, 0, 'f', 1));
                 emit sigAnimationSpeedChanged(speed);
+            });
+    connect(ui->toolButton_keys_toggle, &QToolButton::toggled, this,
+            [this](bool expanded) {
+                ui->widget_keys_content->setVisible(expanded);
+                ui->toolButton_keys_toggle->setText(expanded ? "Hide" : "Show");
             });
 }
 
@@ -111,6 +144,16 @@ void SidebarWnd::updateDPR(qreal r)
         ui->label_ani_speed_val->fontMetrics().horizontalAdvance("999.9x"));
     ui->label_ani_progress_val->setFixedWidth(ani_value_w);
     ui->label_ani_speed_val->setFixedWidth(ani_value_w);
+
+    auto smallFont = qApp->font();
+    smallFont.setPixelSize(qRound(12 * r));
+    ui->toolButton_keys_toggle->setFont(smallFont);
+    renderKeys(r);
+
+    QTextDocument doc;
+    doc.setDefaultFont(ui->label_keys->font());
+    doc.setHtml(ui->label_keys->text());
+    ui->label_keys->setMinimumHeight(qRound(doc.size().height()));
 }
 
 void SidebarWnd::syncControls(bool axis,
@@ -182,17 +225,21 @@ void SidebarWnd::initKeys()
 {
     ui->label_keys->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     ui->label_keys->setWordWrap(true);
+    ui->label_keys->setTextFormat(Qt::RichText);
+}
 
-    const QMap<QString, QString> mouse
+void SidebarWnd::renderKeys(qreal dpr)
+{
+    const QVector<QPair<QString, QString>> mouse
         = {{"Left Button Drag", "Rotate camera"},
            {"Shift + Left Button Drag", "Fine rotation"},
-           {"Ctrl + Left Button Drag", "Roll camera (around view axis)"},
+           {"Ctrl + Left Button Drag", "Roll camera around view axis"},
            {"Right Button Drag", "Pan camera"},
            {"Shift + Right Button Drag", "Fine panning"},
-           {"Mouse Wheel Scroll", "Zoom in/out"},
+           {"Mouse Wheel Scroll", "Zoom in or out"},
            {"Shift + Mouse Wheel Scroll", "Fine zoom"},
            {"Double Click Left Button", "Reset camera to default view"}};
-    const QMap<QString, QString> key
+    const QVector<QPair<QString, QString>> key
         = {{"1-6", "Switch camera views"},
            {"Ctrl+C", "Copy current view"},
            {"B", "Toggle scalar bar"},
@@ -218,18 +265,64 @@ void SidebarWnd::initKeys()
            {"Enter", "Reset camera view"},
            {"Tab", "Toggle sidebar"}};
 
-    constexpr auto sep = "\n";
-    QString space      = "    ";
+    const int section_px  = qRound(12 * dpr);
+    const int key_px      = qRound(12 * dpr);
+    const int body_px     = qRound(13 * dpr);
+    const int intro_px    = qRound(12 * dpr);
+    const int card_gap    = qMax(10, qRound(10 * dpr));
+    const int line_gap    = qMax(1, qRound(1 * dpr));
+    const int section_gap = qMax(8, qRound(8 * dpr));
+    const int intro_gap   = qMax(8, qRound(8 * dpr));
+
+    auto buildSection = [](const QString &title,
+                           const QVector<QPair<QString, QString>> &items,
+                           int section_px, int key_px, int body_px,
+                           int card_gap, int line_gap) {
+        QString html
+            = QString(
+                  "<div style='margin-top:2px; margin-bottom:4px;'>"
+                  "<span style='font-size:%1px; letter-spacing:0.08em; "
+                  "text-transform:uppercase; color:#b8b8b8;'>%2</span>"
+                  "</div>"
+                  "<table cellspacing='0' cellpadding='0' width='100%'>")
+                  .arg(section_px)
+                  .arg(title.toHtmlEscaped());
+        for (const auto &item : items) {
+            html.append(QString("<tr><td style='font-family:Consolas, "
+                                "\"Cascadia Mono\", monospace; "
+                                "font-size:%1px; color:#f4d58d;'>%2</td></tr>"
+                                "<tr><td style='padding-top:%3px; "
+                                "font-size:%4px; color:#d6d6d6;'>%5</td></tr>"
+                                "<tr><td height='%6'></td></tr>")
+                            .arg(key_px)
+                            .arg(item.first.toHtmlEscaped())
+                            .arg(line_gap)
+                            .arg(body_px)
+                            .arg(item.second.toHtmlEscaped())
+                            .arg(card_gap));
+        }
+        html.append("</table>");
+        return html;
+    };
+
     QString text;
-    for (const auto &i : mouse.keys()) {
-        text.append(i).append(sep).append(space).append(mouse[i]);
-        text.append("\n");
-    }
-    text.append("\n");
-    for (const auto &i : key.keys()) {
-        text.append(i).append(sep).append(space).append(key[i]);
-        text.append("\n");
-    }
+    text.append("<div style='line-height:1.2'>");
+    text.append(
+        QString(
+            "<div style='margin-bottom:%1px; font-size:%2px; color:#a8a8a8;'>")
+            .arg(intro_gap)
+            .arg(intro_px));
+    text.append(
+        "Practical shortcuts for quick navigation and display control.");
+    text.append("</div>");
+    text.append(buildSection("Mouse", mouse, section_px, key_px, body_px,
+                             card_gap, line_gap));
+    text.append(QString("<div style='height:%1px'></div>").arg(section_gap));
+    text.append("<br/>");
+    text.append(buildSection("Keyboard", key, section_px, key_px, body_px,
+                             card_gap, line_gap));
+    text.append("</div>");
 
     ui->label_keys->setText(text);
+    ui->label_keys->adjustSize();
 }

@@ -22,7 +22,7 @@ constexpr float g_zoom_factor  = 0.001f;
 constexpr float g_rotate_speed = 0.5f;
 }  // namespace
 
-F3DWidget::F3DWidget(QWidget* parent) : QOpenGLWidget(parent)
+F3DWidget::F3DWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
     qprintt << this;
     qprintt << "f3d version" << f3d::engine::getLibInfo().VersionFull;
@@ -30,38 +30,47 @@ F3DWidget::F3DWidget(QWidget* parent) : QOpenGLWidget(parent)
 
 F3DWidget::~F3DWidget()
 {
+    makeCurrent();
     m_engine.reset();
+    doneCurrent();
     qprintt << "~" << this;
 }
 
-bool F3DWidget::load(const QString& path)
+bool F3DWidget::load(const QString &path)
 {
+    m_path = path;
+    return true;
+}
+
+void F3DWidget::initializeGL()
+{
+    QOpenGLWidget::initializeGL();
+
+    if (m_path.isEmpty()) {
+        return;
+    }
+
     try {
-        connect(this, &QOpenGLWidget::frameSwapped, this, [this]() {
-            //
-            update();
-        });
+        qprintt << "f3d version" << f3d::engine::getLibInfo().VersionFull;
         f3d::engine::autoloadPlugins();
         m_engine = std::make_unique<f3d::engine>(
-            f3d::engine::createExternal([this](const char* name) {
+            f3d::engine::createExternal([this](const char *name) {
                 return context()->getProcAddress(name);
             }));
-        auto& opt              = m_engine->getOptions();
-        opt.render.grid.enable = true;
-        // opt.ui.loader_progress = true;
-        // opt.render.background.color = {0.2, 0.2, 0.2};
-        //  The default scene always has at most one animation.
-        //  The animation index is 0 if no animation is present.
+        auto &opt                 = m_engine->getOptions();
+        opt.render.grid.enable    = true;
         opt.scene.animation.index = -1;
 
         m_engine->getWindow().setSize(width(), height());
-        m_engine->getScene().add(path.toStdString());
+        m_engine->getScene().add(m_path.toStdString());
+
         // initial state
-        auto& cam = m_engine->getWindow().getCamera();
+        auto &cam = m_engine->getWindow().getCamera();
         cam.resetToBounds(0.7);
         cam.azimuth(45);
         cam.elevation(30);
         cam.setCurrentAsDefault();
+
         if (m_engine->getScene().animationTimeRange().second != 0.) {
             // 60 fps
             m_animation.timer.setInterval(16);
@@ -74,17 +83,16 @@ bool F3DWidget::load(const QString& path)
             // no animation
             m_animation.playing = false;
         }
-        return true;
+
+        connect(this, &QOpenGLWidget::frameSwapped, this,
+                [this]() { update(); });
+    }
+    catch (const std::exception &e) {
+        qprintt << "Error initializing F3D engine:" << e.what();
     }
     catch (...) {
         qprintt << "Error initializing F3D engine";
-        return false;
     }
-}
-
-void F3DWidget::initializeGL()
-{
-    QOpenGLWidget::initializeGL();
 }
 
 void F3DWidget::resizeGL(int w, int h)
@@ -101,17 +109,17 @@ void F3DWidget::paintGL()
     }
 }
 
-void F3DWidget::mousePressEvent(QMouseEvent* event)
+void F3DWidget::mousePressEvent(QMouseEvent *event)
 {
     m_pos = event->pos();
 }
 
-void F3DWidget::mouseReleaseEvent(QMouseEvent* event)
+void F3DWidget::mouseReleaseEvent(QMouseEvent *event)
 {
     Q_UNUSED(event);
 }
 
-void F3DWidget::mouseMoveEvent(QMouseEvent* event)
+void F3DWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if (!m_engine) {
         return;
@@ -119,7 +127,7 @@ void F3DWidget::mouseMoveEvent(QMouseEvent* event)
 
     auto delta = event->position() - m_pos;
     m_pos      = event->position();
-    auto& cam  = m_engine->getWindow().getCamera();
+    auto &cam  = m_engine->getWindow().getCamera();
 
     auto panCamera = [this, &cam](float dx, float dy, double speedScale = 1.0) {
         auto pos         = cam.getPosition();
@@ -159,7 +167,7 @@ void F3DWidget::mouseMoveEvent(QMouseEvent* event)
     }
 }
 
-void F3DWidget::mouseDoubleClickEvent(QMouseEvent* event)
+void F3DWidget::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if (!m_engine || event->button() != Qt::LeftButton) {
         QOpenGLWidget::mouseDoubleClickEvent(event);
@@ -170,7 +178,7 @@ void F3DWidget::mouseDoubleClickEvent(QMouseEvent* event)
     m_engine->getWindow().getCamera().resetToDefault();
 }
 
-void F3DWidget::wheelEvent(QWheelEvent* event)
+void F3DWidget::wheelEvent(QWheelEvent *event)
 {
     if (!m_engine) {
         return;
@@ -183,18 +191,18 @@ void F3DWidget::wheelEvent(QWheelEvent* event)
                                                   : delta));
 }
 
-void F3DWidget::keyPressEvent(QKeyEvent* event)
+void F3DWidget::keyPressEvent(QKeyEvent *event)
 {
     handleKey(event);
 }
 
-void F3DWidget::handleKey(QKeyEvent* event)
+void F3DWidget::handleKey(QKeyEvent *event)
 {
     if (!m_engine) {
         return;
     }
 
-    auto& opt        = m_engine->getOptions();
+    auto &opt        = m_engine->getOptions();
     const bool shift = event->modifiers() & Qt::ShiftModifier;
     const bool ctrl  = event->modifiers() & Qt::ControlModifier;
 
@@ -376,7 +384,7 @@ void F3DWidget::moveCamera(CameraPos cp)
         m_engine->getWindow().getCamera().resetToDefault();
         return;
     }
-    auto& cam        = m_engine->getWindow().getCamera();
+    auto &cam        = m_engine->getWindow().getCamera();
     const auto focal = cam.getFocalPoint();
     const auto pos   = cam.getPosition();
     double dist      = std::sqrt(std::pow(focal[0] - pos[0], 2)
@@ -399,14 +407,14 @@ void F3DWidget::moveCamera(CameraPos cp)
     moveCameraTo(target, QVector3D(focal[0], focal[1], focal[2]), up);
 }
 
-void F3DWidget::moveCameraTo(const QVector3D& new_pos,
-                             const QVector3D& focal,
-                             const QVector3D& up)
+void F3DWidget::moveCameraTo(const QVector3D &new_pos,
+                             const QVector3D &focal,
+                             const QVector3D &up)
 {
     if (!m_engine) {
         return;
     }
-    auto animations = this->findChildren<QVariantAnimation*>();
+    auto animations = this->findChildren<QVariantAnimation *>();
     if (!animations.isEmpty()) {
         qprintt << "animation already running";
         return;
@@ -423,12 +431,12 @@ void F3DWidget::moveCameraTo(const QVector3D& new_pos,
     anim->setEndValue(1.0);
     anim->setEasingCurve(QEasingCurve::InOutQuad);
     connect(anim, &QVariantAnimation::valueChanged, this,
-            [this, anim, focal, up](const QVariant& value) {
+            [this, anim, focal, up](const QVariant &value) {
                 const auto start = anim->property(key_start).value<QVector3D>();
                 const auto end   = anim->property(key_end).value<QVector3D>();
                 double progress  = value.toDouble();
                 auto current     = start * (1.0 - progress) + end * progress;
-                auto& cam        = m_engine->getWindow().getCamera();
+                auto &cam        = m_engine->getWindow().getCamera();
                 cam.setPosition({current.x(), current.y(), current.z()});
                 cam.setFocalPoint({focal.x(), focal.y(), focal.z()});
                 cam.setViewUp({up.x(), up.y(), up.z()});
@@ -451,7 +459,7 @@ void F3DWidget::onAnimTick()
     m_engine->getScene().loadAnimationTime(m_animation.pos);
 }
 
-void F3DWidget::setOption(const QString& key, const QString& v)
+void F3DWidget::setOption(const QString &key, const QString &v)
 {
     if (!m_engine) {
         return;
@@ -464,7 +472,7 @@ void F3DWidget::setOption(const QString& key, const QString& v)
     }
 }
 
-QVariant F3DWidget::getOption(const QString& key) const
+QVariant F3DWidget::getOption(const QString &key) const
 {
     if (!m_engine) {
         return {};

@@ -4,6 +4,7 @@
 
 class F3DWidget;
 class SidebarWnd;
+class QToolButton;
 
 class F3DViewer : public ViewerBase {
     Q_OBJECT

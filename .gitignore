@@ -55,3 +55,7 @@ compile_commands.json
 F3D/*
 viewer/bin/usd/*
 viewer/f3dviewer.zip
+.vs
+CMakePresets.json
+CMakeUserPresets.json
+src/bin/usd

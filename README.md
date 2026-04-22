@@ -1,39 +1,45 @@
 # f3dviewer
 
-A lightweight 3D viewer and Seer plugin based on [F3D SDK](https://github.com/f3d-app/f3d).
+A lightweight 3D file preview plugin for [Seer](https://1218.io), built on [F3D SDK](https://github.com/f3d-app/f3d).
 
 ## Features
 
-- Compatible with most 3D file formats supported by F3D
+- Supports most 3D file formats (OBJ, STL, GLTF, FBX, USD, and more)
+- Interactive 3D viewing with camera controls
+- Animation playback support
+- Configurable rendering options (grid, edges, point sprites)
+- Real-time FPS and metadata display
+- Built as a native DLL plugin for Seer 4.0.0+
 
-## Build
+## Building and Running
 
-### Requirements
+Requirements: Qt 6.8+, CMake 3.16+, F3D SDK 3.0+.
 
-- Qt 6.x (Widgets + OpenGL)
-- F3D SDK (version 3.0.0 or later)
-- CMake 3.16 or newer
+1. **Download F3D SDK**
 
-### Setup
-
-1. **Download F3D**
-
-   Download the latest release of F3D SDK from:  
+   Download the latest F3D SDK (version 3.0 or later) from:  
    👉 [https://github.com/f3d-app/f3d/releases](https://github.com/f3d-app/f3d/releases)
 
-2. **Modify `CMakeLists.txt`**
+   Extract it to a location like `../F3D/` relative to this project.
 
-   Edit the `CMakeLists.txt` file and set the correct path to your local F3D installation
+2. **Build**
 
-3. **Build the project**
+   ```bash
+   cd viewer
+   cmake -B build
+   cmake --build build
+   ```
 
-   Open the project in Qt Creator or Visual Studio, then simply build it.
+   This produces two outputs:
+   - `f3dviewer.dll` — the Seer plugin
+   - `test_f3dviewer.exe` — standalone viewer for testing
 
-   Make sure you select the correct Qt kit (Desktop Qt 6.x) if prompted.
+3. **Install the plugin**
 
-## TODO:
+   Copy `f3dviewer.dll` to your Seer plugins directory.
 
-- scale font for fps/metadata
-- animation control
-- use args as options from plugin.json 
-- load in a different thread
+## Seer Plugin
+
+f3dviewer is a file preview plugin for [Seer](https://1218.io) — a quick-look tool for Windows.
+
+Visit [1218.io](https://1218.io) to download Seer and learn more about the plugin ecosystem.

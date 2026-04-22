@@ -4,13 +4,13 @@
 #include <QKeyEvent>
 #include <QToolButton>
 
-#include "F3DWidget.h"
-#include "seer/viewer_helper.h"
+#include "f3dwidget/F3DWidget.h"
+#include "seer/viewerhelper.h"
 #include "sidebarwnd.h"
 
 #define qprintt qDebug() << "[F3DViewer]"
 
-F3DViewer::F3DViewer(QWidget* parent) : ViewerBase(parent)
+F3DViewer::F3DViewer(QWidget *parent) : ViewerBase(parent)
 {
     qprintt << this;
 }
@@ -22,8 +22,9 @@ F3DViewer::~F3DViewer()
 
 QSize F3DViewer::getContentSize() const
 {
-    const auto sz_def = m_d->d->dpr * QSize{950, 700};
-    auto cmd          = property(g_property_key_cmd).toStringList();
+    const auto sz_def = options()->dpr() * QSize{950, 700};
+    auto cmd
+        = options()->property(ViewOptionsKeys::kKeyPluginCmd).toStringList();
     if (!cmd.isEmpty()) {
         auto parsed = seer::parseViewerSizeFromConfig(cmd);
         qprintt << "getContentSize: parsed" << parsed << cmd;
@@ -36,7 +37,6 @@ QSize F3DViewer::getContentSize() const
 
 void F3DViewer::updateDPR(qreal r)
 {
-    m_d->d->dpr = r;
     m_sidebar->updateDPR(r);
     m_btn->setFixedSize(70 * r, 30 * r);
     // m_view: "ui.scale";
@@ -44,9 +44,8 @@ void F3DViewer::updateDPR(qreal r)
 
 void F3DViewer::updateTheme(int t)
 {
-    m_d->d->theme = t;
     if (m_view) {
-        const auto& bg = qApp->palette().color(QPalette::Window);
+        const auto &bg = qApp->palette().color(QPalette::Window);
         m_view->setOption("render.background.color", QString("%1,%2,%3")
                                                          .arg(bg.redF())
                                                          .arg(bg.greenF())
@@ -54,7 +53,7 @@ void F3DViewer::updateTheme(int t)
     }
 }
 
-void F3DViewer::keyPressEvent(QKeyEvent* event)
+void F3DViewer::keyPressEvent(QKeyEvent *event)
 {
     // ViewerBase::keyPressEvent(event);
     if (m_view) {
@@ -63,30 +62,33 @@ void F3DViewer::keyPressEvent(QKeyEvent* event)
     }
 }
 
-void F3DViewer::loadImpl(QBoxLayout* lay_content, QHBoxLayout* lay_ctrlbar)
+void F3DViewer::loadImpl(QBoxLayout *lay_content, QHBoxLayout *lay_ctrlbar)
 {
     m_view = new F3DWidget(this);
     initSidebar();
-    QHBoxLayout* hbl = new QHBoxLayout();
+    QHBoxLayout *hbl = new QHBoxLayout();
     hbl->setContentsMargins(0, 0, 0, 0);
     hbl->setSpacing(0);
     hbl->addWidget(m_view);
     hbl->addWidget(m_sidebar);
 
     lay_content->addLayout(hbl);
-    if (!m_view->load(m_d->d->path)) {
-        emit sigCommand(ViewCommandType::VCT_StateChange, VCV_Error);
+    if (!m_view->load(options()->path())) {
+        emit sigCommand(VCT_StateChange, VCV_Error);
         return;
     }
     if (lay_ctrlbar) {
         lay_ctrlbar->addStretch();
         lay_ctrlbar->addWidget(m_btn);
     }
+    else {
+        m_btn->hide();
+    }
     syncSidebar();
-    updateTheme(m_d->d->theme);
-    updateDPR(m_d->d->dpr);
+    updateTheme(options()->theme());
+    updateDPR(options()->dpr());
 
-    emit sigCommand(ViewCommandType::VCT_StateChange, VCV_Loaded);
+    emit sigCommand(VCT_StateChange, VCV_Loaded);
 }
 
 void F3DViewer::initSidebar()

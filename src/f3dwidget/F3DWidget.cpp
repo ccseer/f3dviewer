@@ -69,7 +69,7 @@ void initF3DLogging()
 
 std::filesystem::path toFsPath(const QString &path)
 {
-    return std::filesystem::u8path(path.toUtf8().toStdString());
+    return std::filesystem::path(path.toStdWString());
 }
 
 QString normalizeLoadPath(const QString &path)
@@ -772,7 +772,12 @@ void F3DWidget::applyOptions(const QStringList &args)
         QString key, value;
         const QString &tok = args[i];
         if (tok.startsWith("--")) {
-            if (tok.contains(' ')) {
+            if (tok.contains('=')) {
+                int idx = tok.indexOf('=');
+                key     = tok.mid(2, idx - 2);
+                value   = tok.mid(idx + 1);
+            }
+            else if (tok.contains(' ')) {
                 auto parts = tok.split(' ', Qt::SkipEmptyParts);
                 if (parts.size() == 2) {
                     key   = parts[0].mid(2);

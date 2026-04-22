@@ -45,7 +45,6 @@ public:
     void moveCamera(CameraPos cp);
 
 Q_SIGNALS:
-    void sigTabPressed();
     void sigLoaded();
     void sigAnimationStateChanged(bool playing);
     void sigAnimationProgressChanged(double current, double duration);

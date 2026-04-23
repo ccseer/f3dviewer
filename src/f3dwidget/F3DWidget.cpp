@@ -115,6 +115,9 @@ QString createAsciiSiblingAlias(const QString &path)
         if (CreateHardLinkW(reinterpret_cast<LPCWSTR>(
                                 QDir::toNativeSeparators(aliasPath).utf16()),
                             reinterpret_cast<LPCWSTR>(src.utf16()), nullptr)) {
+            SetFileAttributesW(reinterpret_cast<LPCWSTR>(
+                                   QDir::toNativeSeparators(aliasPath).utf16()),
+                               FILE_ATTRIBUTE_HIDDEN);
             return aliasPath;
         }
     }

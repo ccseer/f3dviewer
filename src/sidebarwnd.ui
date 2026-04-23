@@ -48,13 +48,9 @@
                 <width>40</width>
                 <height>20</height>
                </size>
-              </property>
+             </property>
              </spacer>
             </item>
-           </layout>
-          </item>
-          <item row="1" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
              <widget class="QPushButton" name="pushButton_ani_play">
               <property name="text">
@@ -62,13 +58,10 @@
               </property>
              </widget>
             </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_ani_reset">
-              <property name="text">
-               <string>Reset</string>
-              </property>
-             </widget>
-            </item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
              <spacer name="horizontalSpacer_8">
               <property name="orientation">

@@ -72,7 +72,11 @@ constexpr auto g_svg_sidebar = R"SVG(
 QIcon svgIcon(const char *svg_data, bool dark_theme, qreal dpr)
 {
     QByteArray data(svg_data);
-    const QByteArray color = dark_theme ? "#e0e0e0" : "#303030";
+    Q_UNUSED(dark_theme);
+    const auto color = qApp->palette()
+                           .color(QPalette::ButtonText)
+                           .name(QColor::HexRgb)
+                           .toUtf8();
     data.replace("currentColor", color);
     QSvgRenderer renderer(data);
     if (!renderer.isValid()) {
@@ -283,8 +287,6 @@ void F3DViewer::initSidebar()
     //
     connect(m_sidebar, &SidebarWnd::sigPlayAnimation, this,
             [this](bool play) { m_view->setAnimationState(play); });
-    connect(m_sidebar, &SidebarWnd::sigResetAnimationPos, this,
-            [this]() { m_view->seekAnimation(0.0); });
     connect(m_sidebar, &SidebarWnd::sigSeekAnimation, this,
             [this](double seconds) { m_view->seekAnimation(seconds); });
     connect(m_sidebar, &SidebarWnd::sigAnimationSelectionChanged, this,

@@ -22,7 +22,6 @@ SidebarWnd::SidebarWnd(QWidget *parent)
     ui->scrollArea->verticalScrollBar()->setProperty("is_readonly", true);
 
     updateAnimationPlayBtnText();
-    ui->pushButton_ani_reset->setVisible(false);
     ui->slider_ani_progress->setEnabled(false);
     ui->label_ani_progress_val->setText("0.0 / 0.0");
     ui->label_render_opacity_val->setText("100%");
@@ -307,13 +306,6 @@ void SidebarWnd::on_pushButton_ani_play_clicked()
     m_ani_run = !m_ani_run;
     updateAnimationPlayBtnText();
     emit sigPlayAnimation(m_ani_run);
-}
-
-void SidebarWnd::on_pushButton_ani_reset_clicked()
-{
-    m_ani_run = false;
-    updateAnimationPlayBtnText();
-    emit sigResetAnimationPos();
 }
 
 void SidebarWnd::updateAnimationPlayBtnText()

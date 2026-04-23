@@ -43,7 +43,6 @@ public:
     void updateDPR(qreal r);
 
     Q_SIGNAL void sigPlayAnimation(bool play);
-    Q_SIGNAL void sigResetAnimationPos();
     Q_SIGNAL void sigSeekAnimation(double seconds);
     Q_SIGNAL void sigAnimationSelectionChanged(int index);
     Q_SIGNAL void sigAnimationLoopChanged(bool loop);
@@ -83,7 +82,6 @@ public:
 
 private:
     Q_SLOT void on_pushButton_ani_play_clicked();
-    Q_SLOT void on_pushButton_ani_reset_clicked();
     void updateAnimationPlayBtnText();
     void updateCameraAxisLabels(bool yUp);
 

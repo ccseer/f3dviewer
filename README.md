@@ -2,6 +2,8 @@
 
 A lightweight 3D file preview plugin for [Seer](https://1218.io), built on [F3D SDK](https://github.com/f3d-app/f3d).
 
+![screenshot](screenshots/f3d.png)
+
 ## Features
 
 - Supports most 3D file formats (OBJ, STL, GLTF, FBX, USD, and more)

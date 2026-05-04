@@ -59,3 +59,4 @@ viewer/f3dviewer.zip
 CMakePresets.json
 CMakeUserPresets.json
 src/bin/usd
+src/bin/f3dviewer.ini

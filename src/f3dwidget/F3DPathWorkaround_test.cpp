@@ -10,8 +10,44 @@ class F3DPathWorkaroundTest : public QObject {
     Q_OBJECT
 
 private Q_SLOTS:
+    void keepsLongStepExtensionWhenNormalizingLoadPath();
+    void createsAliasWithLowercaseExtension();
     void createsAliasUnderSeerAutodelWithoutHiddenAttribute();
 };
+
+void F3DPathWorkaroundTest::keepsLongStepExtensionWhenNormalizingLoadPath()
+{
+    QTemporaryDir dir;
+    QVERIFY2(dir.isValid(), "temporary source directory should be created");
+
+    const QString sourcePath = dir.filePath("2.step");
+    QFile source(sourcePath);
+    QVERIFY2(source.open(QIODevice::WriteOnly),
+             "source file should be writable");
+    source.write("dummy");
+    source.close();
+
+    const QString loadPath = f3d::workaround::normalizeLoadPath(sourcePath);
+    QCOMPARE(QFileInfo(loadPath).completeSuffix().toLower(), QString("step"));
+}
+
+void F3DPathWorkaroundTest::createsAliasWithLowercaseExtension()
+{
+    QTemporaryDir dir;
+    QVERIFY2(dir.isValid(), "temporary source directory should be created");
+
+    const QString sourcePath = dir.filePath("1.STEP");
+    QFile source(sourcePath);
+    QVERIFY2(source.open(QIODevice::WriteOnly),
+             "source file should be writable");
+    source.write("dummy");
+    source.close();
+
+    const QString aliasPath = f3d::workaround::createAsciiAlias(sourcePath);
+    QVERIFY2(!aliasPath.isEmpty(), "alias path should be created");
+    QCOMPARE(QFileInfo(aliasPath).completeSuffix(), QString("step"));
+    QVERIFY(QFile::remove(aliasPath));
+}
 
 void F3DPathWorkaroundTest::createsAliasUnderSeerAutodelWithoutHiddenAttribute()
 {

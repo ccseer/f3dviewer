@@ -1,5 +1,8 @@
 #pragma once
 
+#include <optional>
+#include <string>
+
 #include <QElapsedTimer>
 #include <QOpenGLWidget>
 #include <QString>
@@ -97,6 +100,7 @@ private:
     QString m_original_path;
     QString m_path;
     QString m_load_alias_path;
+    std::optional<std::string> m_forced_reader;
     bool m_loading = false;
     bool m_y_up    = true;
 

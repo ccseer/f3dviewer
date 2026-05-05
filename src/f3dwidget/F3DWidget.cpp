@@ -10,8 +10,6 @@
 #include <f3d/options.h>
 #include <f3d/scene.h>
 #include <f3d/window.h>
-#include <windows.h>
-
 #include <QApplication>
 #include <QClipboard>
 #include <QDebug>
@@ -74,21 +72,6 @@ std::filesystem::path toFsPath(const QString &path)
     return std::filesystem::path(path.toStdWString());
 }
 
-QString normalizeLoadPath(const QString &path)
-{
-    const QString native
-        = QDir::toNativeSeparators(QFileInfo(path).absoluteFilePath());
-    std::wstring wide = native.toStdWString();
-    std::wstring shortPath(MAX_PATH, L'\0');
-    const DWORD len = GetShortPathNameW(wide.c_str(), shortPath.data(),
-                                        static_cast<DWORD>(shortPath.size()));
-    if (len > 0) {
-        shortPath.resize(len);
-        return QDir::fromNativeSeparators(QString::fromStdWString(shortPath));
-    }
-    return QFileInfo(path).absoluteFilePath();
-}
-
 bool hasNonAscii(const QString &path)
 {
     for (const QChar ch : path) {
@@ -97,6 +80,18 @@ bool hasNonAscii(const QString &path)
         }
     }
     return false;
+}
+
+bool shouldRetryWithAsciiAlias(const QString &path)
+{
+    const QString suffix = QFileInfo(path).completeSuffix();
+    return hasNonAscii(path) || suffix != suffix.toLower();
+}
+
+bool isStepFile(const QString &path)
+{
+    const QString suffix = QFileInfo(path).completeSuffix().toLower();
+    return suffix == "step" || suffix == "stp";
 }
 
 }  // namespace
@@ -126,7 +121,8 @@ F3DWidget::~F3DWidget()
 bool F3DWidget::load(const QString &path)
 {
     m_original_path = QFileInfo(path).absoluteFilePath();
-    m_path          = normalizeLoadPath(m_original_path);
+    m_path          = f3d::workaround::normalizeLoadPath(m_original_path);
+    m_forced_reader.reset();
     return true;
 }
 
@@ -207,12 +203,40 @@ void F3DWidget::loadModelInBackground()
         }
         catch (const std::exception &e) {
             qprintt << "Error loading model:" << e.what() << "path:" << m_path;
-            if (m_load_alias_path.isEmpty() && hasNonAscii(m_original_path)) {
+            if (isStepFile(m_original_path)) {
+                try {
+                    m_engine->getScene().clear();
+                    m_forced_reader = "STEP";
+                    if (!addSceneContent()) {
+                        m_loading = false;
+                        return;
+                    }
+
+                    m_loading = false;
+                    emit sigLoaded();
+                    emit sigAnimationStateChanged(m_animation.playing);
+                    emit sigAnimationProgressChanged(m_animation.pos,
+                                                     getAnimationDuration());
+                    update();
+                    return;
+                }
+                catch (const std::exception &retry) {
+                    qprintt << "Retry loading STEP with forced reader failed:"
+                            << retry.what() << "path:" << m_path;
+                }
+                catch (...) {
+                    qprintt << "Retry loading STEP with forced reader failed"
+                            << "path:" << m_path;
+                }
+            }
+            if (m_load_alias_path.isEmpty()
+                && shouldRetryWithAsciiAlias(m_original_path)) {
                 m_load_alias_path
                     = f3d::workaround::createAsciiAlias(m_original_path);
                 if (!m_load_alias_path.isEmpty()) {
                     try {
-                        m_path = normalizeLoadPath(m_load_alias_path);
+                        m_path
+                            = f3d::workaround::normalizeLoadPath(m_load_alias_path);
                         qprintt << "Retry loading via alias:" << m_path;
                         if (!addSceneContent()) {
                             m_loading = false;
@@ -237,6 +261,7 @@ void F3DWidget::loadModelInBackground()
                     }
                 }
             }
+            m_forced_reader.reset();
             m_loading = false;
         }
         catch (...) {
@@ -253,6 +278,7 @@ bool F3DWidget::addSceneContent()
     }
 
     auto &scene = m_engine->getScene();
+    m_engine->getOptions().scene.force_reader = m_forced_reader;
     scene.add(toFsPath(m_path));
     setupDefaultCamera();
 

@@ -23,6 +23,8 @@
 #include <QVariantAnimation>
 #include <QVector3D>
 
+#include "F3DPathWorkaround.h"
+
 #define qprintt qDebug() << "[F3DViewer]"
 
 namespace {
@@ -97,32 +99,6 @@ bool hasNonAscii(const QString &path)
     return false;
 }
 
-QString createAsciiSiblingAlias(const QString &path)
-{
-    QFileInfo info(path);
-    const QString dir    = info.absolutePath();
-    const QString ext    = info.completeSuffix();
-    const QString dotExt = ext.isEmpty() ? QString() : "." + ext;
-    const QString src    = QDir::toNativeSeparators(info.absoluteFilePath());
-
-    for (int i = 0; i < 64; ++i) {
-        const QString aliasName
-            = QString("seer_f3d_%1%2").arg(i, 2, 10, QChar('0')).arg(dotExt);
-        const QString aliasPath = QDir(dir).filePath(aliasName);
-        if (QFileInfo::exists(aliasPath)) {
-            continue;
-        }
-        if (CreateHardLinkW(reinterpret_cast<LPCWSTR>(
-                                QDir::toNativeSeparators(aliasPath).utf16()),
-                            reinterpret_cast<LPCWSTR>(src.utf16()), nullptr)) {
-            SetFileAttributesW(reinterpret_cast<LPCWSTR>(
-                                   QDir::toNativeSeparators(aliasPath).utf16()),
-                               FILE_ATTRIBUTE_HIDDEN);
-            return aliasPath;
-        }
-    }
-    return {};
-}
 }  // namespace
 
 F3DWidget::F3DWidget(QWidget *parent) : QOpenGLWidget(parent)
@@ -232,7 +208,8 @@ void F3DWidget::loadModelInBackground()
         catch (const std::exception &e) {
             qprintt << "Error loading model:" << e.what() << "path:" << m_path;
             if (m_load_alias_path.isEmpty() && hasNonAscii(m_original_path)) {
-                m_load_alias_path = createAsciiSiblingAlias(m_original_path);
+                m_load_alias_path
+                    = f3d::workaround::createAsciiAlias(m_original_path);
                 if (!m_load_alias_path.isEmpty()) {
                     try {
                         m_path = normalizeLoadPath(m_load_alias_path);

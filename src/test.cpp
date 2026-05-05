@@ -14,9 +14,12 @@ int main(int argc, char *argv[])
     et.start();
 
     ViewOptionsPrivate d;
-    d.dpr         = 1;
-    d.theme       = 1;
-    d.path        = "C:\\Users\\corey\\Dev\\build_output\\f3dviewer\\src\\1.FBX";
+    d.dpr   = 1;
+    d.theme = 1;
+    d.path  = "C:\\Users\\corey\\Dev\\build_output\\f3dviewer\\src\\1.FBX";
+    if (argc > 1) {
+        d.path = QString::fromLocal8Bit(argv[1]);
+    }
     d.viewer_type = "f3dviewer";
     // d.path = "c:/d/1.gltf";
     // d.path = "c:/d/2.3ds";

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(f3dviewer VERSION 1.1.0 LANGUAGES CXX)
+project(f3dviewer VERSION 1.1.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,7 +17,7 @@ if(MSVC)
     )
 endif()
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGLWidgets Svg)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGLWidgets Svg Test)
 
 include(FetchContent)
 FetchContent_Declare(SeerSdk
@@ -38,6 +38,8 @@ add_library(f3dviewer SHARED
     sidebarwnd.cpp
     sidebarwnd.h
     sidebarwnd.ui
+    f3dwidget/F3DPathWorkaround.cpp
+    f3dwidget/F3DPathWorkaround.h
     f3dwidget/F3DWidget.cpp
     f3dwidget/F3DWidget.h
     ${seersdk_SOURCE_DIR}/seer/viewerbase.h
@@ -72,4 +74,14 @@ target_link_libraries(f3dviewer_test PRIVATE
     Qt6::Gui
     Qt6::Widgets
     Qt6::OpenGLWidgets
+)
+
+add_executable(f3dviewer_unit_test
+    f3dwidget/F3DPathWorkaround.cpp
+    f3dwidget/F3DPathWorkaround.h
+    f3dwidget/F3DPathWorkaround_test.cpp
+)
+target_link_libraries(f3dviewer_unit_test PRIVATE
+    Qt6::Core
+    Qt6::Test
 )

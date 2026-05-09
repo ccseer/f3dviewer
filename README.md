@@ -45,3 +45,7 @@ Requirements: Qt 6.8+, CMake 3.16+, F3D SDK 3.0+.
 f3dviewer is a file preview plugin for [Seer](https://1218.io) — a quick-look tool for Windows.
 
 Visit [1218.io](https://1218.io) to download Seer and learn more about the plugin ecosystem.
+
+## TODO:
+
+- support Ctrl+C
